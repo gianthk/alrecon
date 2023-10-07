@@ -1,3 +1,5 @@
+import os.path
+
 import yaml
 from os import getlogin, path
 from random import randint
@@ -49,7 +51,7 @@ class alrecon:
 
 	def init_settings(self, filename):
 		with open(filename, "r") as file_object:
-			self.settings_file = solara.reactive(filename)
+			self.settings_file = solara.reactive(os.path.basename(filename))
 			self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
 			self.check_settings_paths()
 
@@ -61,7 +63,7 @@ class alrecon:
 
 	def load_app_settings(self, filename):
 		with open(filename, "r") as file_object:
-			self.settings_file.set(filename)
+			self.settings_file.set(os.path.basename(filename))
 			self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
 
 			# some app settings
@@ -69,6 +71,22 @@ class alrecon:
 				exec('self.'+key + '.set(val)')
 
 		print('Loaded settings file: {0}'.format(filename))
+
+	def save_app_settings(self, filename):
+		# update app settings dictionary to current app state
+		for key, val in self.settings.items():
+			exec('self.settings[\''+key+'\'] = self.'+key+'.value')
+
+		# convert tuples to lists
+		for key, val in self.settings.items():
+			if type(val) is tuple:
+				self.settings[key] = list(val)
+
+		# write YAML settings file
+		with open(filename, 'w') as file:
+			yaml.dump(self.settings, file)
+
+		print('Saved settings file: {0}'.format(filename))
 
 	def myfunc(self):
 		print("Hello my name is " + self.name)

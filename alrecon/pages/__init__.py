@@ -38,7 +38,7 @@ recon_status = solara.reactive(False)
 retrieval_status = solara.reactive(False)
 phase_retrieved = solara.reactive(False)
 recon_counter = solara.reactive(0)
-n_proj = solara.reactive(1001)
+n_proj = solara.reactive(10001)
 proj_range_enable = solara.reactive(False)
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
@@ -396,7 +396,7 @@ def FileLoad():
             solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=2160, thumb_label="always")
             with solara.Row():
                 solara.Switch(label=None, value=proj_range_enable) # on_value=get_n_proj()
-                solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=n_proj.value, disabled=not(proj_range_enable.value), thumb_label='always')
+                solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=10001, disabled=not(proj_range_enable.value), thumb_label='always') # max=n_proj.value,
 
             with solara.Row(): # gap="10px", justify="space-around"
                 # with solara.Column():
@@ -510,7 +510,6 @@ def ReconSettings():
 @solara.component
 def ModifySettings():
 
-    # settings_file = solara.use_reactive(cast(Optional[Path], None))
     settings_directory, set_directory = solara.use_state(Path("./alrecon/settings").expanduser())
 
     def load_settings(path):
@@ -521,10 +520,10 @@ def ModifySettings():
         with solara.Card("Load settings", subtitle="Double-click to load presets", style={"height": "520px"}):
             with solara.VBox():
                 solara.FileBrowser(settings_directory, on_directory_change=set_directory, on_file_open=load_settings, can_select=True)
-                solara.Info(f"Settings file: {os.path.basename(ar.settings_file.value)}", text=True, dense=True, icon=False)
+                solara.Info(f"Settings file: {ar.settings_file.value}", text=True, dense=True, icon=False)
         with solara.Column():
-            solara.Button(label="Restore defaults", on_click=lambda: restore_app_defaults(), disabled=False) # icon_name="mdi-rocket",
-            solara.Button(label="Save presets", on_click=lambda: save_app_settings(), disabled=False) # icon_name="mdi-rocket"
+            solara.Button(label="Restore defaults", on_click=lambda: ar.load_app_settings('./alrecon/settings/default.yml'), disabled=False) # icon_name="mdi-rocket",
+            solara.Button(label="Save presets", on_click=lambda: ar.save_app_settings('./alrecon/settings/'+ar.settings_file.value), disabled=False, icon_name="mdi-content-save-settings")
             solara.InputText("Presets name", value=ar.settings_file, continuous_update=False)
 
 @solara.component
