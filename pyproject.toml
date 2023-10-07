@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling >=0.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "alrecon"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+dependencies = [
+    "solara",
+    "plotly",
+    "dxchange",
+    "tomopy",
+    "pyyaml",
+    "numpy",
+]
+
+[tool.hatch.version]
+path = "alrecon/__init__.py"
+
+
+[project.urls]
+Home = "https://www.github.com/widgetti/solara"
+
+[tool.black]
+line-length = 160
+
+[tool.isort]
+profile = "black"
