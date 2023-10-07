@@ -9,7 +9,6 @@ from time import time
 import napari
 import plotly.express as px
 import solara.express as spx
-from typing import Optional, cast
 
 from ..components import alrecon
 ar = alrecon.alrecon()
@@ -150,12 +149,6 @@ def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, sub
         data_min = range[0]
         data_max = range[1]
         return convertint()
-
-def restore_app_defaults():
-    print('restore default settings')
-
-def save_app_settings():
-    print('save settings')
 
 # viewers
 def view_projs_with_napari():
@@ -396,7 +389,7 @@ def FileLoad():
             solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=2160, thumb_label="always")
             with solara.Row():
                 solara.Switch(label=None, value=proj_range_enable) # on_value=get_n_proj()
-                solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=10001, disabled=not(proj_range_enable.value), thumb_label='always') # max=n_proj.value,
+                solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=n_proj.value, disabled=not(proj_range_enable.value), thumb_label='always') # max=n_proj.value,
 
             with solara.Row(): # gap="10px", justify="space-around"
                 # with solara.Column():
@@ -525,6 +518,8 @@ def ModifySettings():
             solara.Button(label="Restore defaults", on_click=lambda: ar.load_app_settings('./alrecon/settings/default.yml'), disabled=False) # icon_name="mdi-rocket",
             solara.Button(label="Save presets", on_click=lambda: ar.save_app_settings('./alrecon/settings/'+ar.settings_file.value), disabled=False, icon_name="mdi-content-save-settings")
             solara.InputText("Presets name", value=ar.settings_file, continuous_update=False)
+            # if ar.saved_info:
+            #     solara.Success(f"{ar.settings_file.value} saved.", text=True, dense=True, icon=False)
 
 @solara.component
 def ReconHistogram():

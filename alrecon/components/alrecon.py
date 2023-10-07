@@ -31,6 +31,7 @@ class alrecon:
 		self.algorithms = ["gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra"]
 		self.title = generate_title()
 		self.init_settings(settings_file())
+		self.saved_info = False
 
 	def check_settings_paths(self):
 		search_key = '_dir'
