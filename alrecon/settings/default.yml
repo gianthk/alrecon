@@ -1,37 +1,36 @@
-locations:
-    master: '/PETRA/SED/BEATS/IH/scratch/master.csv'
-    experiment: "/PETRA/SED/BEATS/IH/"
-    recon: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
-    cor: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'
-    imagej: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
-general:
-    ncore: 4
-load:
-    normalize: True
-    sino_range: [980, 1020]
-    proj_range: [0, 4001]
-normalize:
-    averaging: 'mean'
-cor:
-    cor: 1280
-    step: 1
-    autoguess: False
-    algorithm: 'TomoPy'
-phase-retrieval:
-    phase_object: False
-    pixelsize: 6.5
-    energy: 20.
-    sdd: 20.
-    alpha: 0.002
-recon:
-    algorithms: [ "gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra" ]
-    algorithm: 'gridrec'
-    num_iter: 50
-output:
-    uintconvert: False
-    bitdepth: 'uint8'
-    circmask: False
-    circ_mask_ratio: 0.9
-plotting:
-    plotreconhist: False
-    speed: 'fast'
+# locations:
+master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
+master_url: ''
+experiment_dir: "/PETRA/SED/BEATS/IH/"
+recon_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
+cor_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'
+imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
+# general settings
+ncore: 4
+normalize_on_load: True
+sino_range: [980, 1020]
+proj_range: [0, 4001]
+averaging: 'mean'
+# Center Of Rotation settings
+COR: 1280
+COR_step: 1
+COR_auto: False
+COR_algorithm: 'TomoPy'
+# Phase retrieval settings
+phase_object: False
+pixelsize: 6.5
+energy: 20.
+sdd: 20.
+alpha: 0.002
+# Reconstruction settings
+# algorithms: [ "gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra" ]
+algorithm: 'gridrec'
+num_iter: 50
+# Output settings
+uintconvert: False
+bitdepth: 'uint8'
+circmask: False
+circmask_ratio: 0.9
+# Plot settings
+plotreconhist: False
+hist_speed: 'fast'
