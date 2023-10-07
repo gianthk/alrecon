@@ -515,7 +515,7 @@ def ModifySettings():
 
     def load_settings(path):
         # settings_file.set(str(path))
-        ar.load_app_settings(ar.settings_file.value)
+        ar.load_app_settings(str(path))
 
     with solara.Row(justify="end"): # style={"max-width": "500px", "margin": "0px"}
         with solara.Card("Load settings", style={"height": "500px"}):
