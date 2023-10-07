@@ -492,7 +492,7 @@ def OutputSettings(disabled=False, style=None):
 
 @solara.component
 def DefaultSettings():
-    with solara.Card("Default settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+    with solara.Card("", style={"max-width": "500px"}, margin=0, classes=["my-2"]): # Default settings
         solara.InputInt("Number of cores", value=ar.ncore, continuous_update=False)
         # solara.InputText("Sinogram averaging:", value=ar.averaging, continuous_update=False)
         solara.Select("Sinogram averaging", value=ar.averaging, values=averagings)
@@ -518,16 +518,14 @@ def ModifySettings():
         ar.load_app_settings(str(path))
 
     with solara.Row(justify="end"): # style={"max-width": "500px", "margin": "0px"}
-        with solara.Card("Load settings", style={"height": "500px"}):
+        with solara.Card("Load settings", subtitle="Double-click to load presets", style={"height": "520px"}):
             with solara.VBox():
                 solara.FileBrowser(settings_directory, on_directory_change=set_directory, on_file_open=load_settings, can_select=True)
                 solara.Info(f"Settings file: {os.path.basename(ar.settings_file.value)}", text=True, dense=True, icon=False)
-
-        solara.Button(label="Restore defaults", on_click=lambda: restore_app_defaults(), disabled=False) # icon_name="mdi-rocket",
-        solara.Button(label="Save settings", on_click=lambda: save_app_settings(), disabled=False) # icon_name="mdi-rocket"
-
-    solara.InputText("Settings file", value=ar.settings_file, continuous_update=False)
-
+        with solara.Column():
+            solara.Button(label="Restore defaults", on_click=lambda: restore_app_defaults(), disabled=False) # icon_name="mdi-rocket",
+            solara.Button(label="Save presets", on_click=lambda: save_app_settings(), disabled=False) # icon_name="mdi-rocket"
+            solara.InputText("Presets name", value=ar.settings_file, continuous_update=False)
 
 @solara.component
 def ReconHistogram():

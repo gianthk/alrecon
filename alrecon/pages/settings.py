@@ -6,10 +6,11 @@ def Page():
 
     solara.Title("Settings")
     with solara.Card("Application settings"): # subtitle="Ask before making changes"
-        GeneralSettings()
-        with solara.Row():
-            DefaultSettings()
-            # with solara.Column(align="stretch"):
-            ReconSettings()
-
-    ModifySettings()
+        with solara.Columns([1,0]):
+            with solara.Column():
+                GeneralSettings()
+                with solara.Row():
+                    DefaultSettings()
+                    # with solara.Column(align="stretch"):
+                    ReconSettings()
+            ModifySettings()
