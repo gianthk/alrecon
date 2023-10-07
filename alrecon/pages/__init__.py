@@ -356,7 +356,7 @@ def CORinspect():
 
 @solara.component
 def SetCOR():
-    solara.InputFloat("Your COR choice", value=ar.COR, continuous_update=True)
+    solara.InputFloat("Center Of Rotation (COR)", value=ar.COR, continuous_update=True)
 
 @solara.component
 def NapariViewer():
@@ -424,14 +424,14 @@ def DatasetInfo():
 
 @solara.component
 def PhaseRetrieval():
-    with solara.Card("", margin=0, classes=["my-2"]): # "Phase retrieval", subtitle="Paganin method",
+    with solara.Card("Phase retrieval", subtitle="Paganin method", margin=0, classes=["my-2"]):
         with solara.Column():
             with solara.Column(style={"margin": "0px"}):
-                solara.Switch(label="Phase retrieval", value=ar.phase_object, style={"height": "20px", "vertical-align": "top"})
+                solara.Switch(label="Phase object", value=ar.phase_object, style={"height": "20px", "vertical-align": "top"})
                 solara.Button(label="Retrieve phase", icon_name="mdi-play", on_click=lambda: retrieve_phase(), disabled=not (ar.phase_object.value))
                 solara.ProgressLinear(retrieval_status.value)
 
-            with solara.Card(subtitle="Phase retrieval parameters", margin=0, classes=["my-2"]):
+            with solara.Card(subtitle="Parameters", margin=0, classes=["my-2"]):
                 with solara.Column():
                     solara.InputFloat("Pixel size [\u03BCm]", value=ar.pixelsize, continuous_update=False, disabled=not (ar.phase_object.value))
                     solara.InputFloat("Sample-detector distance [mm]", value=ar.sdd, continuous_update=False, disabled=not (ar.phase_object.value))
@@ -444,6 +444,7 @@ def PhaseRetrieval():
 def Recon():
     with solara.Card("Launch recon", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
         with solara.Column():
+            SetCOR()
             solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
             solara.Button(label="Reconstruct", icon_name="mdi-car-turbocharger", on_click=lambda: reconstruct_dataset(), disabled=not(loaded_file.value))
             solara.ProgressLinear(recon_status.value)
@@ -554,12 +555,11 @@ def Page():
     with solara.Sidebar():
         with solara.Card(margin=0, elevation=0):
             DispH5FILE()
-            SetCOR()
+            # SetCOR()
             OutputSettings(disabled=False)
             NapariViewer()
             ImageJViewer()
             # DatasetInfo()
-            # solara.Markdown("This is the sidebar at the home page!")
 
     with solara.Card("Load dataset", margin=0, classes=["my-2"]):
         solara.Title(ar.title)
@@ -570,21 +570,16 @@ def Page():
 
     with solara.Columns([0.2, 1], gutters_dense=True):
         PhaseRetrieval()
-        with solara.Card("Find the Center Of Rotation (COR)", margin=0, classes=["my-2"]): # style={"max-width": "800px"},
-            # solara.Title("CT reconstruction")  # "Find the Center Of Rotation (COR)"
-            with solara.Columns([0,1], gutters_dense=True):
-                CORdisplay()
-                CORinspect()
 
-    with solara.Card("CT reconstruction", margin=0, classes=["my-2"]):
-        with solara.Columns([0,1,2], gutters_dense=True):
-            with solara.Column():
-                Recon()
-                solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: cluster_run(), disabled=False, color="primary")
-            OutputControls()
-            ReconHistogram()
+        with solara.Card("CT reconstruction", margin=0, classes=["my-2"]):
+            with solara.Columns([0,1,2], gutters_dense=True):
+                with solara.Column():
+                    Recon()
+                    solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: cluster_run(), disabled=False, color="primary")
+                OutputControls()
+                ReconHistogram()
 
-        solara.Success(f"This al-recon instance reconstructed {recon_counter.value} datasets.", text=True, dense=True, outlined=True, icon=True)
+            solara.Success(f"This al-recon instance reconstructed {recon_counter.value} datasets.", text=True, dense=True, outlined=True, icon=True)
 
 @solara.component
 def Layout(children):
