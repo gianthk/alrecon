@@ -203,15 +203,18 @@ class alrecon:
 
 		print('Loaded settings file: {0}'.format(filename))
 
-	def save_app_settings(self, filename):
+	def update_settings_dictionary(self):
 		# update app settings dictionary to current app state
 		for key, val in self.settings.items():
-			exec('self.settings[\''+key+'\'] = self.'+key+'.value')
+			exec('self.settings[\'' + key + '\'] = self.' + key + '.value')
 
 		# convert tuples to lists
 		for key, val in self.settings.items():
 			if type(val) is tuple:
 				self.settings[key] = list(val)
+
+	def save_app_settings(self, filename):
+		self.update_settings_dictionary()
 
 		# write YAML settings file
 		with open(filename, 'w') as file:
@@ -279,6 +282,7 @@ class alrecon:
 			self.projs, self.flats, self.darks, self.theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
 
 		self.loaded_file.set(True)
+		self.dataset = filename
 
 		self.sino_range.set([self.sino_range.value[0], self.sino_range.value[0] + self.projs.shape[1]])
 		self.proj_range.set([self.proj_range.value[0], self.proj_range.value[0] + self.projs.shape[0]])
