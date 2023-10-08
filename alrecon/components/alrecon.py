@@ -5,6 +5,7 @@ from os import getlogin, path
 from random import randint
 from time import time
 import numpy as np
+from math import isnan
 
 import dxchange
 import tomopy

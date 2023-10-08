@@ -1,12 +1,10 @@
 import solara
 from pathlib import Path
-import numpy as np
 import os
-import napari
 import plotly.express as px
 import solara.express as spx
 
-from ..components import alrecon
+from ..components import alrecon, viewers
 ar = alrecon.alrecon()
 
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
@@ -17,24 +15,11 @@ hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
 
-# viewers
-def view_projs_with_napari():
-    viewer = napari.view_image(ar.projs)
-
-def view_recon_with_napari():
-    viewer = napari.view_image(recon)
-
-def view_cor_with_ImageJ():
-    os.system(ImageJ_exe_stack + ar.cor_dir.value + '/{:04.2f}'.format(COR_range.value[0]) + '.tiff &')
-
-def view_recon_with_ImageJ():
-    os.system(ImageJ_exe_stack + ar.recon_dir.value + '/slice.tiff &')
-
 @solara.component
 def CORdisplay():
     with solara.Card("", margin=0, classes=["my-2"], style={"width": "200px"}):
         with solara.Column():   # gap="10px", justify="space-around"
-            solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: guess_COR(), disabled=not(ar.loaded_file.value))
+            solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: ar.guess_COR(), disabled=not(ar.loaded_file.value))
             solara.InputFloat("COR guess", value=ar.COR_guess, continuous_update=False)
             SetCOR()
             solara.ProgressLinear(ar.cor_status.value)
@@ -56,7 +41,7 @@ def CORinspect():
                 solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: ar.write_cor(),
                           disabled=not (ar.loaded_file.value))
                 solara.Button(label="inspect COR range images", icon_name="mdi-eye",
-                          on_click=lambda: view_cor_with_ImageJ())
+                          on_click=lambda: viewers.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
 def SetCOR():
@@ -66,15 +51,15 @@ def SetCOR():
 def NapariViewer():
     with solara.Card("Napari viewer", style={"max-width": "400px"}, margin=0, classes=["my-2"]):
         with solara.Row(gap="10px", justify="space-around"):
-            solara.Button(label="Sinogram", icon_name="mdi-eye", on_click=lambda: view_projs_with_napari(), text=True, outlined=True, disabled=not(ar.loaded_file.value)) # , attributes={"href": github_url, "target": "_blank"}
-            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: view_recon_with_napari(), text=True, outlined=True, disabled=not(ar.reconstructed.value)) # , attributes={"href": github_url, "target": "_blank"}
+            solara.Button(label="Sinogram", icon_name="mdi-eye", on_click=lambda: viewers.napariView(ar.projs), text=True, outlined=True, disabled=not(ar.loaded_file.value)) # , attributes={"href": github_url, "target": "_blank"}
+            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: viewers.napariView(ar.recon), text=True, outlined=True, disabled=not(ar.reconstructed.value)) # , attributes={"href": github_url, "target": "_blank"}
 
 @solara.component
 def ImageJViewer():
     with solara.Card("ImageJ viewer", subtitle="Launch ImageJ to inspect:", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
         with solara.Row(gap="10px", justify="space-around"):
-            solara.Button(label="COR range", icon_name="mdi-eye", on_click=lambda: view_cor_with_ImageJ(), text=True, outlined=True) # , attributes={"href": github_url, "target": "_blank"}
-            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: view_recon_with_ImageJ(), text=True, outlined=True) # , attributes={"href": github_url, "target": "_blank"}
+            solara.Button(label="COR range", icon_name="mdi-eye", on_click=lambda: viewers.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])), text=True, outlined=True) # , attributes={"href": github_url, "target": "_blank"}
+            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: viewers.imagejView(ImageJ_exe_stack, ar.recon_dir.value), text=True, outlined=True)
 
 @solara.component
 def FileSelect():
@@ -135,7 +120,7 @@ def DatasetInfo():
     with solara.VBox():
         solara.Markdown("### Dataset information")
         solara.Info(f"File name: {Path(h5file.value).stem}", dense=True)
-        solara.Info(f"Proj size: {projs[:, :, :].shape[:]}", dense=True)
+        solara.Info(f"Proj size: {ar.projs[:, :, :].shape[:]}", dense=True)
 
 @solara.component
 def PhaseRetrieval():
@@ -163,8 +148,8 @@ def Recon():
             solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
             solara.Button(label="Reconstruct", icon_name="mdi-car-turbocharger", on_click=lambda: ar.reconstruct_dataset(), disabled=not(ar.loaded_file.value))
             solara.ProgressLinear(ar.recon_status.value)
-            solara.Button(label="Inspect with Napari", icon_name="mdi-eye", on_click=lambda: view_recon_with_napari(), disabled=not(ar.reconstructed.value))
-            solara.Button(label="Write to disk", icon_name="mdi-content-save-all-outline", on_click=lambda: write_recon(), disabled=not(ar.reconstructed.value))
+            solara.Button(label="Inspect with Napari", icon_name="mdi-eye", on_click=lambda: viewers.napariView(ar.recon), disabled=not(ar.reconstructed.value))
+            solara.Button(label="Write to disk", icon_name="mdi-content-save-all-outline", on_click=lambda: ar.write_recon(), disabled=not(ar.reconstructed.value))
 
 @solara.component
 def OutputControls():
@@ -283,7 +268,7 @@ def Page():
             with solara.Columns([0,1,2], gutters_dense=True):
                 with solara.Column():
                     Recon()
-                    solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: cluster_run(), disabled=False, color="primary")
+                    solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=False, color="primary")
                 OutputControls()
                 ReconHistogram()
 
