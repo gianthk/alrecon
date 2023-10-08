@@ -6,7 +6,7 @@ recon_dir: '/mnt/PETRA/SED/BEATS/IH/scratch/pippo/recon'
 cor_dir: '/mnt/PETRA/SED/BEATS/IH/scratch/pippo/cor'
 imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
 # general settings
-ncore: 36
+ncore: 32
 normalize_on_load: True
 sino_range: [980, 1020]
 proj_range: [0, 4001]

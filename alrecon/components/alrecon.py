@@ -3,6 +3,7 @@ import os.path
 import yaml
 from os import getlogin, path
 from random import randint
+from time import time
 import numpy as np
 
 import dxchange
@@ -342,12 +343,12 @@ class alrecon:
 			else:
 				print("Algorithm option not recognized. Will reconstruct with ASTRA FBP CUDA.")
 				options = {'proj_type': 'cuda', 'method': 'FBP_CUDA'}
-			self.recon = tomopy.recon(sinogram(), self.theta, center=self.COR.value, algorithm=tomopy.astra, options=options, ncore=1)
+			self.recon = tomopy.recon(self.sinogram(), self.theta, center=self.COR.value, algorithm=tomopy.astra, options=options, ncore=1)
 		else:
 			self.recon = tomopy.recon(self.sinogram(), self.theta, center=self.COR.value, algorithm=self.algorithm.value, sinogram_order=False, ncore=self.ncore.value)
 
 		if self.phase_object.value:
-			if not phase_retrieved.value:
+			if not self.phase_retrieved.value:
 				solara.Error("Phase info not retrieved! I will reconstruct an absorption dataset.", text=False, dense=True, outlined=False)
 
 		print("Dataset reconstructed.")

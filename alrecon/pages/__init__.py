@@ -1,11 +1,7 @@
 import solara
 from pathlib import Path
 import numpy as np
-from math import isnan
-import dxchange
-import tomopy
 import os
-from time import time
 import napari
 import plotly.express as px
 import solara.express as spx
@@ -16,26 +12,7 @@ ar = alrecon.alrecon()
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
 h5file = solara.reactive("")
 averagings = ['mean', 'median']
-# COR_range = solara.reactive((1260, 1300)) # COR_range_min.value, COR_range_max.value
-# COR_slice_ind = solara.reactive(1000) # int(projs.shape[0]/2)
-# COR_steps = [0.5, 1, 2, 5, 10]
 continuous_update = solara.reactive(True)
-# COR_guess = solara.reactive(1280)
-# COR_algorithms = ["Vo", "TomoPy"]
-# projs = np.zeros([0,0,0])
-# projs_phase = np.zeros([0,0,0])
-# projs_shape = solara.reactive([0,0,0])
-# flats_shape = solara.reactive([0,0,0])
-# darks_shape = solara.reactive([0,0,0])
-# loaded_file = solara.reactive(False)
-# load_status = solara.reactive(False)
-# cor_status = solara.reactive(False)
-# reconstructed = solara.reactive(False)
-# recon_status = solara.reactive(False)
-# retrieval_status = solara.reactive(False)
-# phase_retrieved = solara.reactive(False)
-# recon_counter = solara.reactive(0)
-# proj_range_enable = solara.reactive(False)
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
