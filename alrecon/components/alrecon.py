@@ -9,6 +9,100 @@ import dxchange
 import tomopy
 import solara
 
+# touint should be imported from recon_utils
+def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, subset=True):
+    """Normalize and convert data to unsigned integer.
+
+    Parameters
+    ----------
+    data_3D
+        Input data.
+    dtype
+        Output data type ('uint8' or 'uint16').
+    range : [float, float]
+        Control range for data normalization.
+    quantiles : [float, float]
+        Define range for data normalization through input data quantiles. If range is given this input is ignored.
+    numexpr : bool
+        Use fast numerical expression evaluator for NumPy (memory expensive).
+    subset : bool
+        Use subset of the input data for quantile calculation.
+
+    Returns
+    -------
+    output : uint
+        Normalized data.
+    """
+
+    def convertfloat():
+        return data_3D.astype(np.float32, copy=False), np.float32(data_max - data_min), np.float32(data_min)
+
+    def convertint():
+        if dtype == 'uint8':
+            return convert8bit()
+        elif dtype == 'uint16':
+            return convert16bit()
+
+    def convert16bit():
+
+        data_3D_float, df, mn = convertfloat()
+
+        if numexpr:
+            import numexpr as ne
+
+            scl = ne.evaluate('0.5+65535*(data_3D_float-mn)/df', truediv=True)
+            ne.evaluate('where(scl<0,0,scl)', out=scl)
+            ne.evaluate('where(scl>65535,65535,scl)', out=scl)
+            return scl.astype(np.uint16)
+        else:
+            data_3D_float = 0.5 + 65535 * (data_3D_float - mn) / df
+            data_3D_float[data_3D_float < 0] = 0
+            data_3D_float[data_3D_float > 65535] = 65535
+            return np.uint16(data_3D_float)
+
+    def convert8bit():
+
+        data_3D_float, df, mn = convertfloat()
+
+        if numexpr:
+            import numexpr as ne
+
+            scl = ne.evaluate('0.5+255*(data_3D_float-mn)/df', truediv=True)
+            ne.evaluate('where(scl<0,0,scl)', out=scl)
+            ne.evaluate('where(scl>255,255,scl)', out=scl)
+            return scl.astype(np.uint8)
+        else:
+            data_3D_float = 0.5 + 255 * (data_3D_float - mn) / df
+            data_3D_float[data_3D_float < 0] = 0
+            data_3D_float[data_3D_float > 255] = 255
+            return np.uint8(data_3D_float)
+
+    if range == None:
+
+        # if quantiles is empty data is scaled based on its min and max values
+        if quantiles == None:
+            data_min = np.nanmin(data_3D)
+            data_max = np.nanmax(data_3D)
+            data_max = data_max - data_min
+            return convertint()
+        else:
+            if subset:
+                [data_min, data_max] = np.quantile(np.ravel(data_3D[0::10, 0::10, 0::10]), quantiles)
+            else:
+                [data_min, data_max] = np.quantile(np.ravel(data_3D), quantiles)
+
+            return convertint()
+
+    else:
+        # ignore quantiles input if given
+        if quantiles is not None:
+            print('quantiles input ignored.')
+
+        data_min = range[0]
+        data_max = range[1]
+        return convertint()
+
+
 def generate_title():
 	titles = ["Al-Recon. CT reconstruction for dummies",
 			  "Al-Recon. Have fun reconstructing",
@@ -37,17 +131,35 @@ class alrecon:
 		self.saved_info = False
 		self.dataset = ''
 		self.projs = np.zeros([0, 0, 0])
+		self.n_proj = solara.reactive(10001)
+		self.projs_shape = solara.reactive([0, 0, 0])
+		self.sino_rows = solara.reactive(2200)
 		self.flats = np.zeros([0, 0])
+		self.flats_shape = solara.reactive([0, 0, 0])
 		self.darks = np.zeros([0, 0])
+		self.darks_shape = solara.reactive([0, 0, 0])
 		self.recon = np.zeros([0, 0, 0])
 		self.theta = np.zeros(0)
+
+		self.COR_range = solara.reactive((1260, 1300))
+		self.COR_steps = [0.5, 1, 2, 5, 10]
+		self.COR_guess = solara.reactive(1280)
+		self.COR_algorithms = ["Vo", "TomoPy"]
+		self.COR_slice_ind = solara.reactive(1000)  # int(projs.shape[0]/2)
+		self.recon_counter = solara.reactive(0)
+		self.Data_min = solara.reactive(0)
+		self.Data_max = solara.reactive(0)
+		self.camera_pixel_size = 0
+		self.magnification = 0
+
+		self.proj_range_enable = solara.reactive(False)
 		self.load_status = solara.reactive(False)
 		self.loaded_file = solara.reactive(False)
 		self.cor_status = solara.reactive(False)
-		self.COR_range = solara.reactive((1260, 1300))
-		self.COR_guess = solara.reactive(1280)
-
-		self.proj_range_enable = solara.reactive(False)
+		self.recon_status = solara.reactive(False)
+		self.reconstructed = solara.reactive(False)
+		self.retrieval_status = solara.reactive(False)
+		self.phase_retrieved = solara.reactive(False)
 
 	def check_settings_paths(self):
 		search_key = '_dir'
@@ -105,6 +217,24 @@ class alrecon:
 
 		print('Saved settings file: {0}'.format(filename))
 
+	# H5 readers
+	def set_sino_rows(self, filename):
+		try:
+			dimension_y = int(dxchange.read_hdf5(filename, '/measurement/instrument/camera/dimension_y')[0])
+			roi_size_y = int(dxchange.read_hdf5(filename, '/measurement/instrument/camera/roi/size_y')[0])
+			if roi_size_y > 1:
+				self.sino_rows.set(roi_size_y)
+			else:
+				self.sino_rows.set(dimension_y)
+		except:
+			print("Cannot read sinogram height.")
+
+	def set_n_proj(self, filename):
+		try:
+			self.n_proj.set(int(dxchange.read_hdf5(filename, '/process/acquisition/rotation/num_angles')[0]))
+		except:
+			print("Cannot read n. of projections")
+
 	def get_phase_params(self, filename):
 		try:
 			self.sdd.set(dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector_z')[0])
@@ -117,19 +247,27 @@ class alrecon:
 			print("Cannot read monochromator energy")
 
 		try:
-			camera_pixel_size = dxchange.read_hdf5(filename, '/measurement/instrument/camera/pixel_size')[0]
-			magnification = dxchange.read_hdf5(filename, '/measurement/instrument/detection_system/objective/magnification')[0]
+			self.camera_pixel_size = dxchange.read_hdf5(filename, '/measurement/instrument/camera/pixel_size')[0]
+			self.magnification = dxchange.read_hdf5(filename, '/measurement/instrument/detection_system/objective/magnification')[0]
 		except:
 			print("Cannot read detector information (camera pixel_size; magnification)")
 
 		self.pixelsize.set(0)
-		if not magnification == 0:
-			if not isnan(camera_pixel_size / magnification):
-				self.pixelsize.set(camera_pixel_size / magnification)
+		if not self.magnification == 0:
+			if not isnan(self.camera_pixel_size / self.magnification):
+				self.pixelsize.set(self.camera_pixel_size / self.magnification)
+
+	def sinogram(self):
+
+		if self.phase_object.value:
+			if self.phase_retrieved.value:
+				return self.projs_phase
+			else:
+				return tomopy.minus_log(self.projs, ncore=self.ncore.value)
+		else:
+			return tomopy.minus_log(self.projs, ncore=self.ncore.value)
 
 	def load_and_normalize(self, filename):
-		# global projs
-		# global theta
 		self.load_status.set(True)
 
 		if self.proj_range_enable.value:
@@ -143,9 +281,9 @@ class alrecon:
 		self.sino_range.set([self.sino_range.value[0], self.sino_range.value[0] + self.projs.shape[1]])
 		self.proj_range.set([self.proj_range.value[0], self.proj_range.value[0] + self.projs.shape[0]])
 
-		# projs_shape.set(projs.shape)
-		# flats_shape.set(flats.shape)
-		# darks_shape.set(darks.shape)
+		self.projs_shape.set(self.projs.shape)
+		self.flats_shape.set(self.flats.shape)
+		self.darks_shape.set(self.darks.shape)
 
 		print("Dataset size: ", self.projs[:, :, :].shape[:], " - dtype: ", self.projs.dtype)
 		print("Flat fields size: ", self.flats[:, :, :].shape[:])
@@ -157,25 +295,113 @@ class alrecon:
 			print("Sinogram: normalized.")
 
 		self.load_status.set(False)
-		# COR_slice_ind.set(int(np.mean(ar.sino_range.value)))
+		self.COR_slice_ind.set(int(np.mean(self.sino_range.value)))
 
 		self.get_phase_params(filename)
 
-		# if ar.COR_auto.value:
-		# 	guess_COR()
+		if self.COR_auto.value:
+			self.guess_COR()
 
 	def guess_COR(self):
 		self.cor_status.set(True)
-		if self.COR_ar.algorithm.value == "Vo":
+		if self.COR_algorithm.value == "Vo":
 			self.COR_guess.value = tomopy.find_center_vo(self.projs, ncore=self.ncore.value)
 			print("Automatic detected COR: ", self.COR_guess.value, " - tomopy.find_center_vo")
-		elif self.COR_ar.algorithm.value == "TomoPy":
+		elif self.COR_algorithm.value == "TomoPy":
 			self.COR_guess.value = tomopy.find_center(self.projs, self.theta)[0]
 			print("Automatic detected COR: ", self.COR_guess.value, " - tomopy.find_center")
 
 		self.COR.set(self.COR_guess.value)
 		self.COR_range.set([self.COR_guess.value - 20, self.COR_guess.value + 20])
 		self.cor_status.set(False)
+
+	def write_cor(self):
+		self.cor_status.set(True)
+		tomopy.write_center(self.projs,
+		                    self.theta,
+		                    self.cor_dir.value,
+		                    [self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value],
+		                    ind=int(self.COR_slice_ind.value - self.sino_range.value[0])
+		                    )
+		print("Reconstructed slice with COR range: ",
+		      ([self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value]))
+		self.cor_status.set(False)
+
+	def reconstruct_dataset(self):
+		self.recon_status.set(True)
+
+		if 'cuda_astra' in self.algorithm.value:
+			if 'fbp' in self.algorithm.value:
+				options = {'proj_type': 'cuda', 'method': 'FBP_CUDA'}
+			elif 'sirt' in self.algorithm.value:
+				options = {'proj_type': 'cuda', 'method': 'SIRT_CUDA', 'num_iter': self.num_iter.value}
+			elif 'sart' in self.algorithm.value:
+				options = {'proj_type': 'cuda', 'method': 'SART_CUDA', 'num_iter': self.num_iter.value}
+			elif 'cgls' in self.algorithm.value:
+				options = {'proj_type': 'cuda', 'method': 'CGLS_CUDA', 'num_iter': self.num_iter.value}
+			else:
+				print("Algorithm option not recognized. Will reconstruct with ASTRA FBP CUDA.")
+				options = {'proj_type': 'cuda', 'method': 'FBP_CUDA'}
+			self.recon = tomopy.recon(sinogram(), self.theta, center=self.COR.value, algorithm=tomopy.astra, options=options, ncore=1)
+		else:
+			self.recon = tomopy.recon(self.sinogram(), self.theta, center=self.COR.value, algorithm=self.algorithm.value, sinogram_order=False, ncore=self.ncore.value)
+
+		if self.phase_object.value:
+			if not phase_retrieved.value:
+				solara.Error("Phase info not retrieved! I will reconstruct an absorption dataset.", text=False, dense=True, outlined=False)
+
+		print("Dataset reconstructed.")
+		self.recon_status.set(False)
+		self.reconstructed.set(True)
+		self.recon_counter.set(self.recon_counter.value + 1)
+
+		if (self.Data_min.value == 0) & (self.Data_max.value == 0):
+			recon_subset = self.recon[0::10, 0::10, 0::10]
+
+			# Estimate GV range from data histogram (0.01 and 0.99 quantiles)
+			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.01, 0.99])
+			print("1% quantile: ", range_min)
+			print("99% quantile: ", range_max)
+			self.Data_min.set(round(range_min, 5))
+			self.Data_max.set(round(range_max, 5))
+
+	def write_recon(self):
+		fileout = self.recon_dir.value + '/slice.tiff'
+		self.recon_status.set(True)
+
+		if self.uintconvert.value:
+			if self.circmask.value:
+				dxchange.writer.write_tiff_stack(
+					tomopy.circ_mask(touint(self.recon, self.bitdepth.value, [self.Data_min.value, self.Data_max.value]),
+					                 axis=0, ratio=self.circmask_ratio.value),
+					fname=fileout, dtype=self.bitdepth.value, axis=0, digit=4, start=0, overwrite=True)
+			else:
+				dxchange.writer.write_tiff_stack(
+					touint(self.recon, self.bitdepth.value, [self.Data_min.value, self.Data_max.value]),
+					fname=fileout, dtype=self.bitdepth.value, axis=0, digit=4, start=0, overwrite=True)
+		else:
+			if self.circmask.value:
+				dxchange.writer.write_tiff_stack(tomopy.circ_mask(self.recon, axis=0, ratio=self.circmask_ratio.value),
+				                                 fname=fileout, axis=0, digit=4, start=0, overwrite=True)
+			else:
+				dxchange.writer.write_tiff_stack(self.recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
+		self.recon_status.set(False)
+		print("Dataset written to disk.")
+
+	def retrieve_phase(self):
+		self.retrieval_status.set(True)
+		phase_start_time = time()
+		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=True, ncore=self.ncore.value, nchunk=None)
+		phase_end_time = time()
+		phase_time = phase_end_time - phase_start_time
+		print("Phase retrieval time: {} s\n".format(str(phase_time)))
+		self.retrieval_status.set(False)
+		self.phase_retrieved.set(True)
+
+	def cluster_run(self):
+		print('launch recon on rum...')
+
+	# del variables
 
 	def myfunc(self):
 		print("Hello my name is " + self.name)
