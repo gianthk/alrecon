@@ -38,6 +38,7 @@ retrieval_status = solara.reactive(False)
 phase_retrieved = solara.reactive(False)
 recon_counter = solara.reactive(0)
 n_proj = solara.reactive(10001)
+sino_rows = solara.reactive(2200)
 proj_range_enable = solara.reactive(False)
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
@@ -164,9 +165,20 @@ def view_recon_with_ImageJ():
     os.system(ImageJ_exe_stack + ar.recon_dir.value + '/slice.tiff &')
 
 # H5 readers
-def get_n_proj():
+def get_sino_rows(filename):
     try:
-        n_proj.set(int(dxchange.read_hdf5(h5file.value, '/measurement/instrument/camera/dimension_y')[0]))
+        dimension_y = int(dxchange.read_hdf5(filename, '/measurement/instrument/camera/dimension_y')[0])
+        roi_size_y = int(dxchange.read_hdf5(filename, '/measurement/instrument/camera/roi/size_y')[0])
+        if roi_size_y > 1:
+            sino_rows.set(roi_size_y)
+        else:
+            sino_rows.set(dimension_y)
+    except:
+        print("Cannot read sinogram height.")
+
+def get_n_proj(filename):
+    try:
+        n_proj.set(int(dxchange.read_hdf5(filename, '/process/acquisition/rotation/num_angles')[0]))
     except:
         print("Cannot read n. of projections")
 
@@ -201,6 +213,9 @@ def load_and_normalize(filename):
     else:
         projs, flats, darks, theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(ar.sino_range.value[0], ar.sino_range.value[1], 1))
     loaded_file.set(True)
+
+    ar.sino_range.set([ar.sino_range.value[0], ar.sino_range.value[0]+projs.shape[1]])
+    ar.proj_range.set([ar.proj_range.value[0], ar.proj_range.value[0]+projs.shape[0]])
 
     projs_shape.set(projs.shape)
     flats_shape.set(flats.shape)
@@ -376,9 +391,18 @@ def ImageJViewer():
 def FileSelect():
     with solara.Card("Select HDF5 dataset file", margin=0, classes=["my-2"], style={"max-height": "500px"}): # style={"max-width": "800px"},
         global h5file
+
+        def set_file_and_proj(path):
+            h5file.set(path)
+            get_n_proj(path)
+            get_sino_rows(path)
+            if ar.proj_range.value[1] > n_proj.value:
+                ar.proj_range.set([0, n_proj.value])
+            if ar.sino_range.value[1] > sino_rows.value:
+                ar.sino_range.set([0, sino_rows.value])
+
         h5dir, set_directory = solara.use_state(Path(ar.experiment_dir.value).expanduser())
-        # h5dir, set_directory = solara.use_state(cast(Optional[Path], None))
-        solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=h5file.set, directory_first=True)
+        solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=set_file_and_proj, directory_first=True)
 
 @solara.component
 def FileLoad():
@@ -386,7 +410,7 @@ def FileLoad():
         global h5file
 
         with solara.Column():
-            solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=2160, thumb_label="always")
+            solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=sino_rows.value, thumb_label="always")
             with solara.Row():
                 solara.Switch(label=None, value=proj_range_enable) # on_value=get_n_proj()
                 solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=n_proj.value, disabled=not(proj_range_enable.value), thumb_label='always') # max=n_proj.value,
@@ -442,7 +466,7 @@ def PhaseRetrieval():
 
 @solara.component
 def Recon():
-    with solara.Card("Launch recon", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
+    with solara.Card("Launch reconstruction", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
         with solara.Column():
             SetCOR()
             solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
@@ -524,7 +548,7 @@ def ModifySettings():
 
 @solara.component
 def ReconHistogram():
-    with solara.Card("Recon histogram", style={"margin": "0px"}): # "width": "800px",
+    with solara.Card("Reconstruction histogram", style={"margin": "0px"}): # "width": "800px",
         with solara.Row(style={"max-width": "500px", "margin": "0px"}):
             # with solara.Card(style={"max-width": "200px", "margin": "0px"}):
             solara.Switch(label="Plot histogram", value=ar.plotreconhist)
