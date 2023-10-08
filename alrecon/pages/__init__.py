@@ -124,7 +124,7 @@ def DatasetInfo():
 
 @solara.component
 def PhaseRetrieval():
-    with solara.Card("Phase retrieval", subtitle="Paganin method", margin=0, classes=["my-2"]):
+    with solara.Card("Phase retrieval", subtitle="Paganin method", elevation=2, margin=0, classes=["my-2"]):
         with solara.Column():
             with solara.Column(style={"margin": "0px"}):
                 solara.Switch(label="Phase object", value=ar.phase_object, style={"height": "20px", "vertical-align": "top"})
