@@ -27,8 +27,6 @@ projs_phase = np.zeros([0,0,0])
 projs_shape = solara.reactive([0,0,0])
 flats_shape = solara.reactive([0,0,0])
 darks_shape = solara.reactive([0,0,0])
-recon = np.zeros([0,0,0])
-theta = np.zeros(0)
 loaded_file = solara.reactive(False)
 load_status = solara.reactive(False)
 cor_status = solara.reactive(False)
@@ -182,75 +180,7 @@ def get_n_proj(filename):
     except:
         print("Cannot read n. of projections")
 
-def get_phase_params():
-    try:
-        ar.sdd.set(dxchange.read_hdf5(h5file.value, '/measurement/instrument/detector_motor_stack/detector_z')[0])
-    except:
-        print("Cannot read detector_z value")
-
-    try:
-        ar.energy.set(dxchange.read_hdf5(h5file.value, '/measurement/instrument/monochromator/energy')[0])
-    except:
-        print("Cannot read monochromator energy")
-
-    try:
-        camera_pixel_size = dxchange.read_hdf5(h5file.value, '/measurement/instrument/camera/pixel_size')[0]
-        magnification = dxchange.read_hdf5(h5file.value, '/measurement/instrument/detection_system/objective/magnification')[0]
-        if not isnan(camera_pixel_size / magnification):
-            ar.pixelsize.set(camera_pixel_size / magnification)
-    except:
-        print("Cannot read detector information (camera pixel_size; magnification")
-
 # methods
-def load_and_normalize(filename):
-    global projs
-    global theta
-    load_status.set(True)
-
-    if proj_range_enable.value:
-        projs, flats, darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(ar.sino_range.value[0], ar.sino_range.value[1], 1), proj=(ar.proj_range.value[0], ar.proj_range.value[1], 1))
-        theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((ar.proj_range.value[0], ar.proj_range.value[1], 1),)))
-    else:
-        projs, flats, darks, theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(ar.sino_range.value[0], ar.sino_range.value[1], 1))
-    loaded_file.set(True)
-
-    ar.sino_range.set([ar.sino_range.value[0], ar.sino_range.value[0]+projs.shape[1]])
-    ar.proj_range.set([ar.proj_range.value[0], ar.proj_range.value[0]+projs.shape[0]])
-
-    projs_shape.set(projs.shape)
-    flats_shape.set(flats.shape)
-    darks_shape.set(darks.shape)
-
-    print("Dataset size: ", projs[:, :, :].shape[:], " - dtype: ", projs.dtype)
-    print("Flat fields size: ", flats[:, :, :].shape[:])
-    print("Dark fields size: ", darks[:, :, :].shape[:])
-    print("Theta array size: ", theta.shape[:])
-
-    if ar.normalize_on_load.value:
-        projs = tomopy.normalize(projs, flats, darks, ncore=ar.ncore.value, averaging=ar.averaging.value)
-        print("Sinogram: normalized.")
-
-    load_status.set(False)
-    COR_slice_ind.set(int(np.mean(ar.sino_range.value)))
-
-    get_phase_params()
-
-    if ar.COR_auto.value:
-        guess_COR()
-
-def guess_COR():
-    cor_status.set(True)
-    if ar.COR_ar.algorithm.value == "Vo":
-        COR_guess.value = tomopy.find_center_vo(projs, ncore=ar.ncore.value)
-        print("Automatic detected COR: ", COR_guess.value, " - tomopy.find_center_vo")
-    elif ar.COR_ar.algorithm.value == "TomoPy":
-        COR_guess.value = tomopy.find_center(projs, theta)[0]
-        print("Automatic detected COR: ", COR_guess.value, " - tomopy.find_center")
-
-    ar.COR.set(COR_guess.value)
-    COR_range.set((COR_guess.value - 20, COR_guess.value + 20))
-    cor_status.set(False)
-
 def write_cor():
     cor_status.set(True)
     tomopy.write_center(projs,
@@ -318,9 +248,6 @@ def write_recon():
     fileout = ar.recon_dir.value + '/slice.tiff'
     recon_status.set(True)
 
-    # apply circular mask
-    # recon = tomopy.circ_mask(recon, axis=0, ratio=args.circmask_ratio, val=args.circ_mask_val)
-
     if ar.uintconvert.value:
         if ar.circmask.value:
             dxchange.writer.write_tiff_stack(tomopy.circ_mask(touint(recon, ar.bitdepth.value, [Data_min.value, Data_max.value]), axis=0, ratio=ar.circmask_ratio.value),
@@ -347,7 +274,6 @@ def CORdisplay():
         with solara.Column():   # gap="10px", justify="space-around"
             solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: guess_COR(), disabled=not(loaded_file.value))
             solara.InputFloat("COR guess", value=COR_guess, continuous_update=False)
-            # solara.InputText("COR", value=COR, continuous_update=continuous_update.value)
             SetCOR()
             solara.ProgressLinear(cor_status.value)
 
@@ -356,17 +282,18 @@ def CORinspect():
     with solara.Card(subtitle="COR manual inspection", margin=0, classes=["my-2"], style={"min-width": "900px"}):
         with solara.Column(): # style={"width": "450px"}
             with solara.Row():
-                solara.Markdown(f"Min: {COR_range.value[0]}")
                 solara.SliderRangeInt("COR range", value=COR_range, step=5, min=0, max=projs.shape[2], thumb_label="always")
+                solara.Markdown(f"Min: {COR_range.value[0]}")
                 solara.Markdown(f"Max: {COR_range.value[1]}")
             with solara.Row():
                 solara.SliderInt("COR slice", value=COR_slice_ind, step=5, min=ar.sino_range.value[0], max=ar.sino_range.value[1], thumb_label="always")
                 solara.SliderValue("COR step", value=ar.COR_step, values=COR_steps)
 
             solara.ProgressLinear(cor_status.value)
-            solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: write_cor(),
+            with solara.Row():
+                solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: write_cor(),
                           disabled=not (loaded_file.value))
-            solara.Button(label="inspect COR range images", icon_name="mdi-eye",
+                solara.Button(label="inspect COR range images", icon_name="mdi-eye",
                           on_click=lambda: view_cor_with_ImageJ())
 
 @solara.component
@@ -421,11 +348,11 @@ def FileLoad():
 
             with solara.Row(): # gap="10px", justify="space-around"
                 # with solara.Column():
-                solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: load_and_normalize(h5file.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(h5file.value)[1]=='.h5'))
+                solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: ar.load_and_normalize(h5file.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(h5file.value)[1]=='.h5'))
                 solara.Switch(label="Normalize", value=ar.normalize_on_load, style={"height": "20px"})
                 solara.Switch(label="Guess Center Of Rotation", value=ar.COR_auto, style={"height": "20px"})
 
-            solara.ProgressLinear(load_status.value)
+            solara.ProgressLinear(ar.load_status.value)
 
 @solara.component
 def DispH5FILE():
