@@ -392,6 +392,10 @@ def FileSelect():
     with solara.Card("Select HDF5 dataset file", margin=0, classes=["my-2"], style={"max-height": "500px"}): # style={"max-width": "800px"},
         global h5file
 
+        def filter_h5_file(path):
+            _, ext = os.path.splitext(path)
+            return (ext == '.h5') | (ext == '')
+
         def set_file_and_proj(path):
             h5file.set(path)
             get_n_proj(path)
@@ -402,7 +406,7 @@ def FileSelect():
                 ar.sino_range.set([0, sino_rows.value])
 
         h5dir, set_directory = solara.use_state(Path(ar.experiment_dir.value).expanduser())
-        solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=set_file_and_proj, directory_first=True)
+        solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=set_file_and_proj, directory_first=True, filter=filter_h5_file)
 
 @solara.component
 def FileLoad():
