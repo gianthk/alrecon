@@ -2,6 +2,8 @@
 master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
 master_url: ''
 experiment_dir: "/PETRA/SED/BEATS/IH/"
+experiment_name: ''
+dataset: ''
 recon_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
 cor_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'
 imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'

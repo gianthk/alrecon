@@ -11,6 +11,8 @@ import dxchange
 import tomopy
 import solara
 
+from .gspreadlog import log_to_gspread
+
 # touint should be imported from recon_utils
 def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, subset=True):
     """Normalize and convert data to unsigned integer.
@@ -104,7 +106,6 @@ def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, sub
         data_max = range[1]
         return convertint()
 
-
 def generate_title():
 	titles = ["Al-Recon. CT reconstruction for dummies",
 			  "Al-Recon. Have fun reconstructing",
@@ -131,17 +132,18 @@ class alrecon:
 		self.title = generate_title()
 		self.init_settings(settings_file())
 		self.saved_info = False
-		self.dataset = ''
 		self.projs = np.zeros([0, 0, 0])
+		self.flats = np.zeros([0, 0])
+		self.darks = np.zeros([0, 0])
+		self.recon = np.zeros([0, 0, 0])
+		self.theta = np.zeros(0)
+
+		self.dataset = solara.reactive('')
 		self.n_proj = solara.reactive(10001)
 		self.projs_shape = solara.reactive([0, 0, 0])
 		self.sino_rows = solara.reactive(2200)
-		self.flats = np.zeros([0, 0])
 		self.flats_shape = solara.reactive([0, 0, 0])
-		self.darks = np.zeros([0, 0])
 		self.darks_shape = solara.reactive([0, 0, 0])
-		self.recon = np.zeros([0, 0, 0])
-		self.theta = np.zeros(0)
 
 		self.COR_range = solara.reactive((1260, 1300))
 		self.COR_steps = [0.5, 1, 2, 5, 10]
@@ -151,6 +153,7 @@ class alrecon:
 		self.recon_counter = solara.reactive(0)
 		self.Data_min = solara.reactive(0)
 		self.Data_max = solara.reactive(0)
+
 		self.camera_pixel_size = 0
 		self.magnification = 0
 
@@ -206,12 +209,21 @@ class alrecon:
 	def update_settings_dictionary(self):
 		# update app settings dictionary to current app state
 		for key, val in self.settings.items():
-			exec('self.settings[\'' + key + '\'] = self.' + key + '.value')
+			if hasattr(self, key):
+				exec('self.settings[\'' + key + '\'] = self.' + key + '.value')
 
 		# convert tuples to lists
 		for key, val in self.settings.items():
 			if type(val) is tuple:
 				self.settings[key] = list(val)
+
+		# add settings values for lists
+		self.settings['sino_start'] = self.sino_range.value[0]
+		self.settings['sino_end'] = self.sino_range.value[1]
+		self.settings['proj_start'] = self.proj_range.value[0]
+		self.settings['proj_end'] = self.proj_range.value[1]
+
+
 
 	def save_app_settings(self, filename):
 		self.update_settings_dictionary()
@@ -282,7 +294,7 @@ class alrecon:
 			self.projs, self.flats, self.darks, self.theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
 
 		self.loaded_file.set(True)
-		self.dataset = filename
+		self.dataset.set(path.splitext(path.basename(filename))[0])
 
 		self.sino_range.set([self.sino_range.value[0], self.sino_range.value[0] + self.projs.shape[1]])
 		self.proj_range.set([self.proj_range.value[0], self.proj_range.value[0] + self.projs.shape[0]])
@@ -405,7 +417,11 @@ class alrecon:
 		self.phase_retrieved.set(True)
 
 	def cluster_run(self):
-		print('launch recon on rum...')
+		print('Logging recon to master...')
+		self.update_settings_dictionary()
+		log_to_gspread(self.settings)
+
+		# print('launch recon on rum...')
 
 	# del variables
 
