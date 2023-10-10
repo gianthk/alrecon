@@ -67,17 +67,8 @@ def FileSelect():
             _, ext = os.path.splitext(path)
             return (ext == '.h5') | (ext == '')
 
-        def set_file_and_proj(path):
-            ar.h5file.set(path)
-            ar.set_n_proj(path)
-            ar.set_sino_rows(path)
-            if ar.proj_range.value[1] > ar.n_proj.value:
-                ar.proj_range.set([0, ar.n_proj.value])
-            if ar.sino_range.value[1] > ar.sino_rows.value:
-                ar.sino_range.set([0, ar.sino_rows.value])
-
         h5dir, set_directory = solara.use_state(Path(ar.experiment_dir.value).expanduser())
-        solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=set_file_and_proj, directory_first=True, filter=filter_h5_file)
+        solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=ar.set_file_and_proj, directory_first=True, filter=filter_h5_file)
 
 @solara.component
 def FileLoad():
@@ -157,15 +148,17 @@ def OutputControls():
 
 @solara.component
 def GeneralSettings(disabled=False, style=None):
+    solara.InputText("Experiment name", value=ar.experiment_name, on_value=ar.set_output_dirs(), continuous_update=False, disabled=disabled)
     solara.InputText("Experiment directory", value=ar.experiment_dir, on_value=ar.check_path(ar.experiment_dir), continuous_update=False, disabled=disabled)
-    solara.InputText("Master file", value=ar.master_file, continuous_update=False, disabled=disabled)
+    # solara.InputText("Master file", value=ar.master_file, continuous_update=False, disabled=disabled)
 
     OutputSettings()
 
 @solara.component
 def OutputSettings(disabled=False, style=None):
     with solara.Card("Output directories", margin=0, classes=["my-2"]): # style={"max-width": "500px"},
-        solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True),continuous_update=False, disabled=disabled)
+        solara.Switch(label="Auto complete output directories", value=ar.auto_complete) # , style={"height": "20px"}
+        solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True), continuous_update=False, disabled=disabled)
         solara.InputText("COR directory", value=ar.cor_dir, continuous_update=False, on_value=ar.check_path(ar.cor_dir, True),disabled=disabled)
 
 @solara.component

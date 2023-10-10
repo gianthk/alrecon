@@ -178,10 +178,32 @@ class alrecon:
 	def check_path(self, var, create=False):
 		if create:
 			dir = path.dirname(var.value)
+			dir2 = path.dirname(dir)
 		else:
 			dir = var.value
-		if not path.isdir(dir):
+			dir2 = 'nodir'
+
+		if not (path.isdir(dir) | path.isdir(dir2)):
 			var.set('/')
+
+	def set_output_dirs(self):
+		if self.auto_complete.value:
+			self.recon_dir.set(self.experiment_dir.value+'scratch/'+self.experiment_name.value+'/'+self.dataset.value+'/recon')
+			self.cor_dir.set(self.experiment_dir.value+'scratch/'+self.experiment_name.value+'/'+self.dataset.value+'/cor')
+			self.check_path(self.recon_dir, True)
+			self.check_path(self.cor_dir, True)
+
+	def set_file_and_proj(self, dataset_path):
+		self.h5file.set(dataset_path)
+		self.set_n_proj(dataset_path)
+		self.set_sino_rows(dataset_path)
+		if self.proj_range.value[1] > self.n_proj.value:
+			self.proj_range.set([0, self.n_proj.value])
+		if self.sino_range.value[1] > self.sino_rows.value:
+			self.sino_range.set([0, self.sino_rows.value])
+
+		self.dataset.set(path.splitext(path.basename(str(dataset_path)))[0])
+		self.set_output_dirs()
 
 	def init_settings(self, filename):
 		with open(filename, "r") as file_object:
@@ -222,8 +244,6 @@ class alrecon:
 		self.settings['sino_end'] = self.sino_range.value[1]
 		self.settings['proj_start'] = self.proj_range.value[0]
 		self.settings['proj_end'] = self.proj_range.value[1]
-
-
 
 	def save_app_settings(self, filename):
 		self.update_settings_dictionary()
@@ -294,7 +314,7 @@ class alrecon:
 			self.projs, self.flats, self.darks, self.theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
 
 		self.loaded_file.set(True)
-		self.dataset.set(path.splitext(path.basename(filename))[0])
+		# self.dataset.set(path.splitext(path.basename(filename))[0])
 
 		self.sino_range.set([self.sino_range.value[0], self.sino_range.value[0] + self.projs.shape[1]])
 		self.proj_range.set([self.proj_range.value[0], self.proj_range.value[0] + self.projs.shape[0]])

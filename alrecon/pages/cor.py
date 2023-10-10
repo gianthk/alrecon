@@ -1,13 +1,13 @@
 import solara
 
-from . import CORdisplay, CORinspect, DispH5FILE, SetCOR, OutputSettings, NapariViewer, ImageJViewer
+from . import CORdisplay, CORinspect, DatasetInfo, SetCOR, OutputSettings, NapariViewer, ImageJViewer
 
 
 @solara.component
 def Page():
     with solara.Sidebar():
         with solara.Card(margin=0, elevation=0):
-            DispH5FILE()
+            DatasetInfo()
             # SetCOR()
             OutputSettings(disabled=False)
             NapariViewer()
