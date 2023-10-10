@@ -159,6 +159,7 @@ class alrecon:
 		self.camera_pixel_size = 0
 		self.magnification = 0
 
+		self.sino_range_enable = solara.reactive(True)
 		self.proj_range_enable = solara.reactive(False)
 		self.load_status = solara.reactive(False)
 		self.loaded_file = solara.reactive(False)
@@ -241,7 +242,11 @@ class alrecon:
 		# update app settings dictionary to current app state
 		for key, val in self.settings.items():
 			if hasattr(self, key):
-				exec('self.settings[\'' + key + '\'] = self.' + key + '.value')
+				solara_item = False
+				if eval('hasattr(self.'+key+', \'value\')'):
+					exec('self.settings[\'' + key + '\'] = self.' + key + '.value')
+				else:
+					exec('self.settings[\'' + key + '\'] = self.' + key)
 
 		# convert tuples to lists
 		for key, val in self.settings.items():

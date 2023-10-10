@@ -72,11 +72,16 @@ def FileSelect():
 
 @solara.component
 def FileLoad():
-    with solara.Column():
-        solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=ar.sino_rows.value, thumb_label="always")
-        with solara.Row():
-            solara.Switch(label=None, value=ar.proj_range_enable) # on_value=set_n_proj()
-            solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=ar.n_proj.value, disabled=not(ar.proj_range_enable.value), thumb_label='always') # max=n_proj.value,
+    with solara.Column(gap='8px'):
+        with solara.Card(elevation=2, margin=0):
+            with solara.Row():
+                solara.Switch(label=None, value=ar.sino_range_enable,
+                              style={"height": "20px", "vertical-align": "bottom"})  # on_value=set_n_proj()
+                solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=ar.sino_rows.value, thumb_label="always")
+        with solara.Card(elevation=2, margin=0):
+            with solara.Row():
+                solara.Switch(label=None, value=ar.proj_range_enable, style={"height": "20px", "vertical-align": "bottom"}) # on_value=set_n_proj()
+                solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=ar.n_proj.value, disabled=not(ar.proj_range_enable.value), thumb_label='always') # max=n_proj.value,
 
         with solara.Row(): # gap="10px", justify="space-around"
             solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: ar.load_and_normalize(ar.h5file.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'))
