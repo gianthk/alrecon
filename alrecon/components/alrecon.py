@@ -239,11 +239,20 @@ class alrecon:
 			if type(val) is tuple:
 				self.settings[key] = list(val)
 
-		# add settings values for lists
+		# add settings values for lists (this is a patch since I don't know how to effectively log lists to gspread rows)
 		self.settings['sino_start'] = self.sino_range.value[0]
 		self.settings['sino_end'] = self.sino_range.value[1]
 		self.settings['proj_start'] = self.proj_range.value[0]
 		self.settings['proj_end'] = self.proj_range.value[1]
+
+		# add log settings for additional items
+		self.settings['n_proj'] = self.n_proj.value
+		# self.settings['rot_end'] = self.projs[-1]
+		self.settings['angle_start'] = np.degrees(self.theta[0])
+		self.settings['angle_end'] = np.degrees(self.theta[-1])
+		self.settings['dtype'] = str(self.recon.dtype)
+		self.settings['Data_min'] = self.Data_min.value
+		self.settings['Data_max'] = self.Data_max.value
 
 	def save_app_settings(self, filename):
 		self.update_settings_dictionary()

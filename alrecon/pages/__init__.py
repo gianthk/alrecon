@@ -157,7 +157,7 @@ def GeneralSettings(disabled=False, style=None):
 @solara.component
 def OutputSettings(disabled=False, style=None):
     with solara.Card("Output directories", margin=0, classes=["my-2"]): # style={"max-width": "500px"},
-        solara.Switch(label="Auto complete output directories", value=ar.auto_complete) # , style={"height": "20px"}
+        solara.Switch(label="Auto-complete", value=ar.auto_complete) # , style={"height": "20px"}
         solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True), continuous_update=False, disabled=disabled)
         solara.InputText("COR directory", value=ar.cor_dir, continuous_update=False, on_value=ar.check_path(ar.cor_dir, True),disabled=disabled)
 
