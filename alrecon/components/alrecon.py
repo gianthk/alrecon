@@ -341,11 +341,20 @@ class alrecon:
 	def load_and_normalize(self, filename):
 		self.load_status.set(True)
 
-		if self.proj_range_enable.value:
-			self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1), proj=(self.proj_range.value[0], self.proj_range.value[1], 1))
-			self.theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
-		else:
-			self.projs, self.flats, self.darks, self.theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
+		if not self.proj_range_enable.value:
+			self.proj_range.set([0, self.n_proj.value])
+
+		if not self.sino_range_enable.value:
+			self.sino_range.set([0, self.sino_rows.value])
+
+		self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1), proj=(self.proj_range.value[0], self.proj_range.value[1], 1))
+		self.theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
+
+		# if self.proj_range_enable.value:
+		# 	self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1), proj=(self.proj_range.value[0], self.proj_range.value[1], 1))
+		# 	self.theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
+		# else:
+		# 	self.projs, self.flats, self.darks, self.theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
 
 		self.loaded_file.set(True)
 		# self.dataset.set(path.splitext(path.basename(filename))[0])
@@ -473,6 +482,12 @@ class alrecon:
 	def cluster_run(self):
 		print('Logging recon to master...')
 		self.worker = 'rum'
+		if not self.proj_range_enable.value:
+			self.proj_range.set([0, self.n_proj.value])
+
+		if not self.sino_range_enable.value:
+			self.sino_range.set([0, self.sino_rows.value])
+
 		self.update_settings_dictionary()
 		log_to_gspread(self.settings)
 
