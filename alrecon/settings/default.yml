@@ -1,8 +1,8 @@
 # locations:
 master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
-master_url: ''
 experiment_dir: "/PETRA/SED/BEATS/IH/"
 experiment_name: ''
+h5file: ''
 dataset: ''
 recon_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
 cor_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'

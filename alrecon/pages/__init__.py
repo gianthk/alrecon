@@ -8,7 +8,6 @@ from ..components import alrecon, viewers
 ar = alrecon.alrecon()
 
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
-h5file = solara.reactive("")
 averagings = ['mean', 'median']
 continuous_update = solara.reactive(True)
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
@@ -64,14 +63,12 @@ def ImageJViewer():
 @solara.component
 def FileSelect():
     with solara.Card("Select HDF5 dataset file", margin=0, classes=["my-2"], style={"max-height": "500px"}): # style={"max-width": "800px"},
-        global h5file
-
         def filter_h5_file(path):
             _, ext = os.path.splitext(path)
             return (ext == '.h5') | (ext == '')
 
         def set_file_and_proj(path):
-            h5file.set(path)
+            ar.h5file.set(path)
             ar.set_n_proj(path)
             ar.set_sino_rows(path)
             if ar.proj_range.value[1] > ar.n_proj.value:
@@ -84,43 +81,30 @@ def FileSelect():
 
 @solara.component
 def FileLoad():
-    # with solara.Card("", margin=0, classes=["my-2"]): # style={"max-width": "800px"},
-        global h5file
+    with solara.Column():
+        solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=ar.sino_rows.value, thumb_label="always")
+        with solara.Row():
+            solara.Switch(label=None, value=ar.proj_range_enable) # on_value=set_n_proj()
+            solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=ar.n_proj.value, disabled=not(ar.proj_range_enable.value), thumb_label='always') # max=n_proj.value,
 
-        with solara.Column():
-            solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=ar.sino_rows.value, thumb_label="always")
-            with solara.Row():
-                solara.Switch(label=None, value=ar.proj_range_enable) # on_value=set_n_proj()
-                solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=ar.n_proj.value, disabled=not(ar.proj_range_enable.value), thumb_label='always') # max=n_proj.value,
+        with solara.Row(): # gap="10px", justify="space-around"
+            solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: ar.load_and_normalize(ar.h5file.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'))
+            solara.Switch(label="Normalize", value=ar.normalize_on_load, style={"height": "20px"})
+            solara.Switch(label="Guess Center Of Rotation", value=ar.COR_auto, style={"height": "20px"})
 
-            with solara.Row(): # gap="10px", justify="space-around"
-                # with solara.Column():
-                solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: ar.load_and_normalize(h5file.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(h5file.value)[1]=='.h5'))
-                solara.Switch(label="Normalize", value=ar.normalize_on_load, style={"height": "20px"})
-                solara.Switch(label="Guess Center Of Rotation", value=ar.COR_auto, style={"height": "20px"})
-
-            solara.ProgressLinear(ar.load_status.value)
+        solara.ProgressLinear(ar.load_status.value)
 
 @solara.component
-def DispH5FILE():
-    # solara.Markdown("## Dataset information")
-    # solara.Markdown(f"**File name**: {h5file.value}")
+def DatasetInfo():
     return solara.Markdown(f'''
             ## Dataset information
-            * File name: {Path(h5file.value).stem}
+            * Dataset name: {Path(ar.h5file.value).stem}
             * Sinogram range: `{ar.sino_range.value[0]} - {ar.sino_range.value[1]}`
             * Projections range: `{ar.proj_range.value[0]} - {ar.proj_range.value[1]}`
             * Sinogram size: {ar.projs_shape.value[0]} x {ar.projs_shape.value[1]} x {ar.projs_shape.value[2]}
             ''')
     # * Flat data size: {flats_shape.value[0]} x {flats_shape.value[1]} x {flats_shape.value[2]}
     # * Dark data size: {darks_shape.value[0]} x {darks_shape.value[1]} x {darks_shape.value[2]}
-
-@solara.component
-def DatasetInfo():
-    with solara.VBox():
-        solara.Markdown("### Dataset information")
-        solara.Info(f"File name: {Path(h5file.value).stem}", dense=True)
-        solara.Info(f"Proj size: {ar.projs[:, :, :].shape[:]}", dense=True)
 
 @solara.component
 def PhaseRetrieval():
@@ -247,19 +231,17 @@ def ReconHistogram():
 def Page():
     with solara.Sidebar():
         with solara.Card(margin=0, elevation=0):
-            DispH5FILE()
+            DatasetInfo()
             # SetCOR()
             OutputSettings(disabled=False)
             NapariViewer()
             ImageJViewer()
-            # DatasetInfo()
 
     with solara.Card("Load dataset", margin=0, classes=["my-2"]):
         solara.Title(ar.title)
         # solara.Markdown("This is the home page")
         FileSelect()
         FileLoad()
-        # DatasetInfo()
 
     with solara.Columns([0.2, 1], gutters_dense=True):
         PhaseRetrieval()
