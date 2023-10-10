@@ -132,11 +132,12 @@ class alrecon:
 		self.title = generate_title()
 		self.init_settings(settings_file())
 		self.saved_info = False
+		self.worker = 'local' # 'rum'
 		self.projs = np.zeros([0, 0, 0])
 		self.flats = np.zeros([0, 0])
 		self.darks = np.zeros([0, 0])
 		self.recon = np.zeros([0, 0, 0])
-		self.theta = np.zeros(0)
+		self.theta = np.zeros(1)
 
 		self.dataset = solara.reactive('')
 		self.n_proj = solara.reactive(10001)
@@ -197,8 +198,13 @@ class alrecon:
 		self.h5file.set(dataset_path)
 		self.set_n_proj(dataset_path)
 		self.set_sino_rows(dataset_path)
-		if self.proj_range.value[1] > self.n_proj.value:
+
+		if self.proj_range_enable.value:
+			if self.proj_range.value[1] > self.n_proj.value:
+				self.proj_range.set([0, self.n_proj.value])
+		else:
 			self.proj_range.set([0, self.n_proj.value])
+
 		if self.sino_range.value[1] > self.sino_rows.value:
 			self.sino_range.set([0, self.sino_rows.value])
 
@@ -246,11 +252,15 @@ class alrecon:
 		self.settings['proj_end'] = self.proj_range.value[1]
 
 		# add log settings for additional items
+		self.settings['worker'] = self.worker
 		self.settings['n_proj'] = self.n_proj.value
 		# self.settings['rot_end'] = self.projs[-1]
 		self.settings['angle_start'] = np.degrees(self.theta[0])
 		self.settings['angle_end'] = np.degrees(self.theta[-1])
-		self.settings['dtype'] = str(self.recon.dtype)
+		if self.uintconvert.value:
+			self.settings['dtype'] = self.bitdepth.value
+		else:
+			self.settings['dtype'] = 'float32'
 		self.settings['Data_min'] = self.Data_min.value
 		self.settings['Data_max'] = self.Data_max.value
 
@@ -438,7 +448,7 @@ class alrecon:
 	def retrieve_phase(self):
 		self.retrieval_status.set(True)
 		phase_start_time = time()
-		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=True, ncore=self.ncore.value, nchunk=None)
+		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value, nchunk=None)
 		phase_end_time = time()
 		phase_time = phase_end_time - phase_start_time
 		print("Phase retrieval time: {} s\n".format(str(phase_time)))
@@ -447,6 +457,7 @@ class alrecon:
 
 	def cluster_run(self):
 		print('Logging recon to master...')
+		self.worker = 'rum'
 		self.update_settings_dictionary()
 		log_to_gspread(self.settings)
 

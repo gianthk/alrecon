@@ -107,7 +107,8 @@ def PhaseRetrieval():
                 solara.ProgressLinear(ar.retrieval_status.value)
 
             with solara.Card(subtitle="Parameters", margin=0, classes=["my-2"]):
-                with solara.Column():
+                with solara.Column(gap='4px'):
+                    solara.Switch(label="Pad", value=ar.pad, disabled=not (ar.phase_object.value)) # , style={"height": "20px", "vertical-align": "top"}
                     solara.InputFloat("Pixel size [\u03BCm]", value=ar.pixelsize, continuous_update=False, disabled=not (ar.phase_object.value))
                     solara.InputFloat("Sample-detector distance [mm]", value=ar.sdd, continuous_update=False, disabled=not (ar.phase_object.value))
                     solara.InputFloat("Energy [keV]", value=ar.energy, continuous_update=False, disabled=not (ar.phase_object.value))
@@ -243,7 +244,7 @@ def Page():
             with solara.Columns([0,1,2], gutters_dense=True):
                 with solara.Column():
                     Recon()
-                    solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=False, color="primary")
+                    solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'), color="primary")
                 OutputControls()
                 ReconHistogram()
 

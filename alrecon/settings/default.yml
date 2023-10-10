@@ -22,6 +22,7 @@ COR_auto: False
 COR_algorithm: 'TomoPy'
 # Phase retrieval settings
 phase_object: False
+pad: True
 pixelsize: 6.5
 energy: 20.
 sdd: 20.
