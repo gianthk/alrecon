@@ -133,6 +133,7 @@ class alrecon:
 		self.init_settings(settings_file())
 		self.saved_info = False
 		self.worker = 'local' # 'rum'
+		self.exp_time = 0.
 		self.projs = np.zeros([0, 0, 0])
 		self.flats = np.zeros([0, 0])
 		self.darks = np.zeros([0, 0])
@@ -198,6 +199,8 @@ class alrecon:
 		self.h5file.set(dataset_path)
 		self.set_n_proj(dataset_path)
 		self.set_sino_rows(dataset_path)
+		self.set_exp_time(dataset_path)
+		self.set_phase_params(dataset_path)
 
 		if self.proj_range_enable.value:
 			if self.proj_range.value[1] > self.n_proj.value:
@@ -253,6 +256,7 @@ class alrecon:
 
 		# add log settings for additional items
 		self.settings['worker'] = self.worker
+		self.settings['exp_time'] = self.exp_time
 		self.settings['n_proj'] = self.n_proj.value
 		# self.settings['rot_end'] = self.projs[-1]
 		self.settings['angle_start'] = np.degrees(self.theta[0])
@@ -285,13 +289,19 @@ class alrecon:
 		except:
 			print("Cannot read sinogram height.")
 
+	def set_exp_time(self, filename):
+		try:
+			self.exp_time = dxchange.read_hdf5(filename, '/measurement/instrument/camera/exposure_time')[0]
+		except:
+			print("Cannot read exposure time.")
+
 	def set_n_proj(self, filename):
 		try:
 			self.n_proj.set(int(dxchange.read_hdf5(filename, '/process/acquisition/rotation/num_angles')[0]))
 		except:
 			print("Cannot read n. of projections")
 
-	def get_phase_params(self, filename):
+	def set_phase_params(self, filename):
 		try:
 			self.sdd.set(dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector_z')[0])
 		except:
@@ -354,7 +364,7 @@ class alrecon:
 		self.load_status.set(False)
 		self.COR_slice_ind.set(int(np.mean(self.sino_range.value)))
 
-		self.get_phase_params(filename)
+		# self.set_phase_params(filename)
 
 		if self.COR_auto.value:
 			self.guess_COR()

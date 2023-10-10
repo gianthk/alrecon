@@ -15,7 +15,6 @@ scopes = [
 key_file = 'keys/alrecon-f048b037c351.json'
 # key_file = './../keys/alrecon_v1-f048b037c351.json'
 
-print(os.getcwd())
 creds = ServiceAccountCredentials.from_json_keyfile_name(filename=key_file, scopes=scopes)
 
 
