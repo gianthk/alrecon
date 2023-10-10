@@ -77,7 +77,7 @@ def FileLoad():
             with solara.Row():
                 solara.Switch(label=None, value=ar.sino_range_enable,
                               style={"height": "20px", "vertical-align": "bottom"})  # on_value=set_n_proj()
-                solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=ar.sino_rows.value, thumb_label="always")
+                solara.SliderRangeInt("Sinogram range", value=ar.sino_range, min=0, max=ar.sino_rows.value, disabled=not(ar.sino_range_enable.value), thumb_label="always")
         with solara.Card(elevation=2, margin=0):
             with solara.Row():
                 solara.Switch(label=None, value=ar.proj_range_enable, style={"height": "20px", "vertical-align": "bottom"}) # on_value=set_n_proj()
