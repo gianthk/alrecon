@@ -129,12 +129,16 @@ def settings_file():
 class alrecon:
 	def __init__(self):
 		self.algorithms = ["gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra"]
+		self.averagings = ['mean', 'median']
+		self.stripe_removal_methods = ['remove_dead_stripe', 'remove_all_stripe', 'remove_large_stripe', 'remove_stripe_based_fitting']
 		self.title = generate_title()
 		self.init_settings(settings_file())
 		self.saved_info = False
 		self.worker = 'local' # 'rum'
 		self.exp_time = 0.
 		self.projs = np.zeros([0, 0, 0])
+		self.projs_stripe = np.zeros([0, 0, 0])
+		self.projs_phase = np.zeros([0, 0, 0])
 		self.flats = np.zeros([0, 0])
 		self.darks = np.zeros([0, 0])
 		self.recon = np.zeros([0, 0, 0])
@@ -164,6 +168,8 @@ class alrecon:
 		self.load_status = solara.reactive(False)
 		self.loaded_file = solara.reactive(False)
 		self.cor_status = solara.reactive(False)
+		self.stripe_removal_status = solara.reactive(False)
+		self.stripe_removed = solara.reactive(False)
 		self.recon_status = solara.reactive(False)
 		self.reconstructed = solara.reactive(False)
 		self.retrieval_status = solara.reactive(False)
@@ -468,6 +474,16 @@ class alrecon:
 				dxchange.writer.write_tiff_stack(self.recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
 		self.recon_status.set(False)
 		print("Dataset written to disk.")
+
+	def remove_stripe(self):
+		if self.stripe_removal_method.value == 'remove_dead_stripe':
+			self.stripe_removal_status.set(True)
+			self.projs_stripe = tomopy.prep.stripe.remove_dead_stripe(self.projs, snr=self.stripe_removal_snr.value, size=self.stripe_removal_size.value, ncore=self.ncore.value)
+			print("Stripes removed with method: {}\n".format(str(self.stripe_removal_method)))
+			self.stripe_removal_status.set(False)
+			self.stripe_removed.set(True)
+		else:
+			print("Stripe removal method not implemented.")
 
 	def retrieve_phase(self):
 		self.retrieval_status.set(True)

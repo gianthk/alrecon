@@ -8,7 +8,6 @@ from ..components import alrecon, viewers
 ar = alrecon.alrecon()
 
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
-averagings = ['mean', 'median']
 continuous_update = solara.reactive(True)
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
@@ -172,7 +171,7 @@ def DefaultSettings():
     with solara.Card("", style={"max-width": "500px"}, margin=0, classes=["my-2"]): # Default settings
         solara.InputInt("Number of cores", value=ar.ncore, continuous_update=False)
         # solara.InputText("Sinogram averaging:", value=ar.averaging, continuous_update=False)
-        solara.Select("Sinogram averaging", value=ar.averaging, values=averagings)
+        solara.Select("Sinogram averaging", value=ar.averaging, values=ar.averagings)
         solara.Select("Auto COR algorithm", value=ar.COR_algorithm, values=ar.COR_algorithms)
         solara.Switch(label="Normalize dataset upon loading", value=ar.normalize_on_load, style={"height": "20px"})
         solara.Switch(label="Attempt auto COR upon loading", value=ar.COR_auto, style={"height": "40px"})

@@ -15,6 +15,10 @@ normalize_on_load: True
 sino_range: [980, 1020]
 proj_range: [0, 4001]
 averaging: 'mean'
+# Stripe removal settings
+stripe_removal_method: 'remove_dead_stripe'
+stripe_removal_snr: 3.
+stripe_removal_size: 51
 # Center Of Rotation settings
 COR: 1280
 COR_step: 1
