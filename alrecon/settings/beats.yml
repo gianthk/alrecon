@@ -1,24 +1,16 @@
 # locations:
-master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
-experiment_dir: "/PETRA/SED/BEATS/IH/"
-experiment_name: '<experiment_name>'
-h5file: ''
-dataset: '<dataset>'
-recon_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
-cor_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'
-auto_complete: True
+master_file: '/mnt/PETRA/SED/BEATS/IH/scratch/master.csv'
+master_url: ''
+experiment_dir: '/mnt/PETRA/SED/BEATS/IH/'
+recon_dir: '/mnt/PETRA/SED/BEATS/IH/scratch/pippo/recon'
+cor_dir: '/mnt/PETRA/SED/BEATS/IH/scratch/pippo/cor'
 imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
 # general settings
-expert: False
-ncore: 4
+ncore: 32
 normalize_on_load: True
 sino_range: [980, 1020]
 proj_range: [0, 4001]
 averaging: 'mean'
-# Stripe removal settings
-stripe_removal_method: 'remove_dead_stripe'
-stripe_removal_snr: 3.
-stripe_removal_size: 51
 # Center Of Rotation settings
 COR: 1280
 COR_step: 1
@@ -26,7 +18,6 @@ COR_auto: False
 COR_algorithm: 'TomoPy'
 # Phase retrieval settings
 phase_object: False
-pad: True
 pixelsize: 6.5
 energy: 20.
 sdd: 20.
