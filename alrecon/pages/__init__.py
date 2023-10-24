@@ -6,6 +6,7 @@ import solara.express as spx
 
 from ..components import alrecon, viewers
 ar = alrecon.alrecon()
+view = viewers.viewers()
 
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
 continuous_update = solara.reactive(True)
@@ -39,25 +40,33 @@ def CORinspect():
                 solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: ar.write_cor(),
                           disabled=not (ar.loaded_file.value))
                 solara.Button(label="inspect COR range images", icon_name="mdi-eye",
-                          on_click=lambda: viewers.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
+                          on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
 def SetCOR():
     solara.InputFloat("Center Of Rotation (COR)", value=ar.COR, continuous_update=True)
 
 @solara.component
+def NapariViewSinogram(label="Sinogram"):
+    solara.Button(label=label, icon_name="mdi-eye", on_click=lambda: view.napariView(ar.projs), text=True, outlined=True, disabled=not (ar.loaded_file.value & view.napari_available))  # , attributes={"href": github_url, "target": "_blank"}
+
+@solara.component
+def NapariViewRecon(label="Reconstruction"):
+    solara.Button(label=label, icon_name="mdi-eye", on_click=lambda: view.napariView(ar.recon), text=True, outlined=True, disabled=not (ar.reconstructed.value & view.napari_available))  # , attributes={"href": github_url, "target": "_blank"}
+
+@solara.component
 def NapariViewer():
     with solara.Card("Napari viewer", style={"max-width": "400px"}, margin=0, classes=["my-2"]):
         with solara.Row(gap="10px", justify="space-around"):
-            solara.Button(label="Sinogram", icon_name="mdi-eye", on_click=lambda: viewers.napariView(ar.projs), text=True, outlined=True, disabled=not(ar.loaded_file.value)) # , attributes={"href": github_url, "target": "_blank"}
-            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: viewers.napariView(ar.recon), text=True, outlined=True, disabled=not(ar.reconstructed.value)) # , attributes={"href": github_url, "target": "_blank"}
+            NapariViewSinogram()
+            NapariViewRecon()
 
 @solara.component
 def ImageJViewer():
     with solara.Card("ImageJ viewer", subtitle="Launch ImageJ to inspect:", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
         with solara.Row(gap="10px", justify="space-around"):
-            solara.Button(label="COR range", icon_name="mdi-eye", on_click=lambda: viewers.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])), text=True, outlined=True) # , attributes={"href": github_url, "target": "_blank"}
-            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: viewers.imagejView(ImageJ_exe_stack, ar.recon_dir.value), text=True, outlined=True)
+            solara.Button(label="COR range", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])), text=True, outlined=True) # , attributes={"href": github_url, "target": "_blank"}
+            solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.recon_dir.value), text=True, outlined=True)
 
 @solara.component
 def FileSelect():
@@ -128,12 +137,12 @@ def Recon():
             solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
             solara.Button(label="Reconstruct", icon_name="mdi-car-turbocharger", on_click=lambda: ar.reconstruct_dataset(), disabled=not(ar.loaded_file.value))
             solara.ProgressLinear(ar.recon_status.value)
-            solara.Button(label="Inspect with Napari", icon_name="mdi-eye", on_click=lambda: viewers.napariView(ar.recon), disabled=not(ar.reconstructed.value))
+            NapariViewRecon(label="View with napari")
             solara.Button(label="Write to disk", icon_name="mdi-content-save-all-outline", on_click=lambda: ar.write_recon(), disabled=not(ar.reconstructed.value))
 
 @solara.component
 def OutputControls():
-    with solara.Card("Output file settings", margin=0, classes=["my-2"], style={"max-width": "400px"}):
+    with solara.Card("Output file settings", margin=0, classes=["my-2"], style={"max-width": "400px", "height": "450px"}):
         # solara.Markdown("blabla")
         with solara.Column():
             with solara.Card(subtitle="Integer conversion", margin=0):
@@ -161,7 +170,7 @@ def GeneralSettings(disabled=False, style=None):
 
 @solara.component
 def OutputSettings(disabled=False, style=None):
-    with solara.Card("Output directories", margin=0, classes=["my-2"]): # style={"max-width": "500px"},
+    with solara.Card("Output directories", margin=0, classes=["my-2"]):
         solara.Switch(label="Auto-complete", value=ar.auto_complete) # , style={"height": "20px"}
         solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True), continuous_update=False, disabled=disabled)
         solara.InputText("COR directory", value=ar.cor_dir, continuous_update=False, on_value=ar.check_path(ar.cor_dir, True),disabled=disabled)
@@ -206,7 +215,7 @@ def ModifySettings():
 
 @solara.component
 def ReconHistogram():
-    with solara.Card("Reconstruction histogram", style={"margin": "0px"}): # "width": "800px",
+    with solara.Card("Reconstruction histogram", style={"margin": "0px", "height": "450px"}): # "width": "800px",
         with solara.Row(style={"max-width": "500px", "margin": "0px"}):
             # with solara.Card(style={"max-width": "200px", "margin": "0px"}):
             solara.Switch(label="Plot histogram", value=ar.plotreconhist)
@@ -226,7 +235,10 @@ def ReconHistogram():
                 spx.CrossFilteredFigurePlotly(fig)
 
 @solara.component
-def Page():
+def Page(jupyter=False):
+    if not jupyter:
+        view.napari_available = False
+
     with solara.Sidebar():
         with solara.Card(margin=0, elevation=0):
             DatasetInfo()
@@ -260,13 +272,16 @@ def Layout(children):
 
 @solara.component
 def PageSettings():
-
     solara.Title("Settings")
-    with solara.Card("Settings", subtitle="Ask before making changes"):
-        OutputSettings()
-        with solara.Row():
-            DefaultSettings()
-            ReconSettings()
+    with solara.Card("Application settings"):  # subtitle="Ask before making changes"
+        with solara.Columns([1, 0]):
+            with solara.Column():
+                GeneralSettings()
+                with solara.Row():
+                    DefaultSettings()
+                    # with solara.Column(align="stretch"):
+                    ReconSettings()
+            ModifySettings()
 
-# Page()
-# PageSettings()
+Page(jupyter=True)
+PageSettings()
