@@ -131,7 +131,7 @@ def PhaseRetrieval():
 
 @solara.component
 def Recon():
-    with solara.Card("Launch reconstruction", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
+    with solara.Card("Launch recon", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
         with solara.Column():
             SetCOR()
             solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
@@ -174,6 +174,7 @@ def OutputSettings(disabled=False, style=None):
         solara.Switch(label="Auto-complete", value=ar.auto_complete) # , style={"height": "20px"}
         solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True), continuous_update=False, disabled=disabled)
         solara.InputText("COR directory", value=ar.cor_dir, continuous_update=False, on_value=ar.check_path(ar.cor_dir, True),disabled=disabled)
+        solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False, disabled=disabled)
 
 @solara.component
 def DefaultSettings():
@@ -253,7 +254,7 @@ def Page(jupyter=False):
         FileSelect()
         FileLoad()
 
-    with solara.Columns([0.2, 1], gutters_dense=True):
+    with solara.Columns([0.18, 1], gutters_dense=True):
         PhaseRetrieval()
 
         with solara.Card("CT reconstruction", margin=0, classes=["my-2"]):

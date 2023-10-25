@@ -1,5 +1,7 @@
 # locations:
 master_file: '/mnt/PETRA/SED/BEATS/IH/scratch/master.csv'
+master_spreadsheet: 'master'
+gspread_key: '/home/beats/PycharmProjects/alrecon/keys/alrecon-f048b037c351.json'
 experiment_dir: "/mnt/PETRA/SED/BEATS/IH/"
 experiment_name: '<experiment_name>'
 h5file: ''
