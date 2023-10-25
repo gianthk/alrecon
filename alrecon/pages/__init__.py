@@ -131,7 +131,7 @@ def PhaseRetrieval():
 
 @solara.component
 def Recon():
-    with solara.Card("Launch reconstruction", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
+    with solara.Card("Launch recon", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
         with solara.Column():
             SetCOR()
             solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
@@ -253,7 +253,7 @@ def Page(jupyter=False):
         FileSelect()
         FileLoad()
 
-    with solara.Columns([0.2, 1], gutters_dense=True):
+    with solara.Columns([0.18, 1], gutters_dense=True):
         PhaseRetrieval()
 
         with solara.Card("CT reconstruction", margin=0, classes=["my-2"]):
