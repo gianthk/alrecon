@@ -11,7 +11,7 @@ import dxchange
 import tomopy
 import solara
 
-from alrecon.components.gspreadlog import log_to_gspread
+from alrecon.components import gspreadlog
 
 # touint should be imported from recon_utils
 def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, subset=True):
@@ -174,6 +174,8 @@ class alrecon:
 		self.reconstructed = solara.reactive(False)
 		self.retrieval_status = solara.reactive(False)
 		self.phase_retrieved = solara.reactive(False)
+
+		self.glog = gspreadlog.logger(key=self.gspread_key.value, experiment_name=self.experiment_name.value)
 
 	def check_settings_paths(self):
 		search_key = '_dir'
@@ -505,7 +507,7 @@ class alrecon:
 			self.sino_range.set([0, self.sino_rows.value])
 
 		self.update_settings_dictionary()
-		log_to_gspread(self.settings)
+		self.glog.log_to_gspread(self.settings)
 
 		# print('launch recon on rum...')
 

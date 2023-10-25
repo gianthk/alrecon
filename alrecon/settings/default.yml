@@ -1,6 +1,6 @@
 # App settings:
 master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
-master_sheet: 'master'
+master_spreadsheet: 'master'
 gspread_key: ''
 experiment_dir: "/PETRA/SED/BEATS/IH/"
 experiment_name: '<experiment_name>'

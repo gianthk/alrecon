@@ -174,6 +174,7 @@ def OutputSettings(disabled=False, style=None):
         solara.Switch(label="Auto-complete", value=ar.auto_complete) # , style={"height": "20px"}
         solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True), continuous_update=False, disabled=disabled)
         solara.InputText("COR directory", value=ar.cor_dir, continuous_update=False, on_value=ar.check_path(ar.cor_dir, True),disabled=disabled)
+        solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False, disabled=disabled)
 
 @solara.component
 def DefaultSettings():
