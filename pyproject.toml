@@ -4,8 +4,31 @@ build-backend = "hatchling.build"
 
 [project]
 name = "alrecon"
+description = "The TomoPy reconstruction SOLARA GUI"
 license = {file = "LICENSE"}
-classifiers = ["License :: OSI Approved :: MIT License"]
+authors = [
+    { name="Gianluca Iori", email="gianthk.iori@gmail.com" },
+]
+keywords = [
+    "computed tomography",
+    "tomographic reconstruction",
+    "image processing",
+    "synchrotron",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.7"
 dynamic = ["version", "description"]
 dependencies = [
     "solara",
@@ -16,9 +39,16 @@ dependencies = [
     "numpy",
 ]
 
+[project.optional-dependencies]
+all = [
+    "gspread",
+    "gspread_dataframe",
+    "oauth2client",
+    "napari",
+]
+
 [tool.hatch.version]
 path = "alrecon/__init__.py"
-
 
 [project.urls]
 Home = "https://www.github.com/widgetti/solara"
