@@ -4,7 +4,7 @@ import os
 import plotly.express as px
 import solara.express as spx
 
-from ..components import alrecon, viewers
+from alrecon.components import alrecon, viewers
 ar = alrecon.alrecon()
 view = viewers.viewers()
 

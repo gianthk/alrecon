@@ -11,7 +11,7 @@ import dxchange
 import tomopy
 import solara
 
-from .gspreadlog import log_to_gspread
+from alrecon.components.gspreadlog import log_to_gspread
 
 # touint should be imported from recon_utils
 def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, subset=True):

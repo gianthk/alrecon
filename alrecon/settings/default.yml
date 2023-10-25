@@ -1,5 +1,7 @@
-# locations:
+# App settings:
 master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
+master_sheet: 'master'
+gspread_key: ''
 experiment_dir: "/PETRA/SED/BEATS/IH/"
 experiment_name: '<experiment_name>'
 h5file: ''
@@ -8,7 +10,7 @@ recon_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
 cor_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'
 auto_complete: True
 imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
-# general settings
+# General settings
 expert: False
 ncore: 4
 normalize_on_load: True
