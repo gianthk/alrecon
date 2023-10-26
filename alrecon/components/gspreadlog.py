@@ -1,3 +1,4 @@
+import logging
 import os
 import pandas as pd
 import numpy as np
@@ -71,6 +72,6 @@ class logger:
                 # update master sheet
                 set_with_dataframe(sheet, master)
             except:
-                print('WARNING: master spreadsheet {0} does not exist. Check that spreadsheet exists and is shared.'.format(settings['master_spreadsheet']))
+                logging.error('Master spreadsheet {0} does not exist. Check that spreadsheet exists and is shared.'.format(settings['master_spreadsheet']))
         else:
-            print('WARNING: gspread not available for dataframe logging.')
+            logging.error('gspread not available for dataframe logging.')

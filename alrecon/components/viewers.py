@@ -1,3 +1,4 @@
+import logging
 from os import system
 
 class viewers:
@@ -14,7 +15,7 @@ class viewers:
             import napari
             viewer = napari.view_image(image)
         else:
-            print("WARNING: Napari module not available.")
+            logging.ERROR("Napari module not available.")
 
     def imagejView(self, ImageJ_exe_stack, image_dir, image_name=None):
         if image_name is not None:
