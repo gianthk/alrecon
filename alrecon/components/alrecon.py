@@ -11,6 +11,12 @@ import dxchange
 import tomopy
 import solara
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("alrecon")
+logger_dxchange = logging.getLogger("dxchange")
+logger_dxchange.setLevel(logging.CRITICAL)
+
 from alrecon.components import gspreadlog
 
 # touint should be imported from recon_utils
@@ -100,7 +106,7 @@ def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, sub
     else:
         # ignore quantiles input if given
         if quantiles is not None:
-            print('quantiles input ignored.')
+            logger.warning('Quantiles input ignored.')
 
         data_min = range[0]
         data_max = range[1]
@@ -183,7 +189,7 @@ class alrecon:
 		for key, val in self.settings.items():
 			if search_key in key:
 				if not path.isdir(val):
-					print('{0}: {1} does not exist.'.format(key, val))
+					logger.warning('{0}: {1} does not exist.'.format(key, val))
 					self.settings[key] = '/'
 
 	def check_path(self, var, create=False):
@@ -233,7 +239,7 @@ class alrecon:
 			for key, val in self.settings.items():
 				exec('self.'+key + '=solara.reactive(val)')
 
-		print('Init settings file: {0}'.format(filename))
+		logger.info('Init settings file: {0}'.format(filename))
 
 	def load_app_settings(self, filename):
 		with open(filename, "r") as file_object:
@@ -244,7 +250,7 @@ class alrecon:
 			for key, val in self.settings.items():
 				exec('self.'+key + '.set(val)')
 
-		print('Loaded settings file: {0}'.format(filename))
+		logger.info('Loaded settings file: {0}'.format(filename))
 
 	def update_settings_dictionary(self):
 		# update app settings dictionary to current app state
@@ -288,7 +294,7 @@ class alrecon:
 		with open(filename, 'w') as file:
 			yaml.dump(self.settings, file)
 
-		print('Saved settings file: {0}'.format(filename))
+		logger.info('Saved settings file: {0}'.format(filename))
 
 	# H5 readers
 	def set_sino_rows(self, filename):
@@ -300,36 +306,36 @@ class alrecon:
 			else:
 				self.sino_rows.set(dimension_y)
 		except:
-			print("Cannot read sinogram height.")
+			logger.warning("Cannot read sinogram height.")
 
 	def set_exp_time(self, filename):
 		try:
 			self.exp_time = dxchange.read_hdf5(filename, '/measurement/instrument/camera/exposure_time')[0]
 		except:
-			print("Cannot read exposure time.")
+			logger.warning("Cannot read exposure time.")
 
 	def set_n_proj(self, filename):
 		try:
 			self.n_proj.set(int(dxchange.read_hdf5(filename, '/process/acquisition/rotation/num_angles')[0]))
 		except:
-			print("Cannot read n. of projections")
+			logger.warning("Cannot read n. of projections")
 
 	def set_phase_params(self, filename):
 		try:
 			self.sdd.set(dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector_z')[0])
 		except:
-			print("Cannot read detector_z value")
+			logger.warning("Cannot read detector_z value")
 
 		try:
 			self.energy.set(dxchange.read_hdf5(filename, '/measurement/instrument/monochromator/energy')[0])
 		except:
-			print("Cannot read monochromator energy")
+			logger.warning("Cannot read monochromator energy")
 
 		try:
 			self.camera_pixel_size = dxchange.read_hdf5(filename, '/measurement/instrument/camera/pixel_size')[0]
 			self.magnification = dxchange.read_hdf5(filename, '/measurement/instrument/detection_system/objective/magnification')[0]
 		except:
-			print("Cannot read detector information (camera pixel_size; magnification)")
+			logger.warning("Cannot read detector information (camera pixel_size; magnification)")
 
 		self.pixelsize.set(0)
 		if not self.magnification == 0:
@@ -374,14 +380,15 @@ class alrecon:
 		self.flats_shape.set(self.flats.shape)
 		self.darks_shape.set(self.darks.shape)
 
-		print("Dataset size: ", self.projs[:, :, :].shape[:], " - dtype: ", self.projs.dtype)
-		print("Flat fields size: ", self.flats[:, :, :].shape[:])
-		print("Dark fields size: ", self.darks[:, :, :].shape[:])
-		print("Theta array size: ", self.theta.shape[:])
+		# logger.info("Dataset size: ", self.projs[:, :, :].shape[:], " - dtype: ", self.projs.dtype)
+		logger.info("Dataset size: {0} x {1} x {2} - dtype: {3}".format(*self.projs[:, :, :].shape[:], self.projs.dtype))
+		logger.info("Flat fields size: {0} x {1} x {2}".format(*self.flats[:, :, :].shape[:]))
+		logger.info("Dark fields size: {0} x {1} x {2}".format(*self.darks[:, :, :].shape[:]))
+		logger.info("Theta array size: {0}".format(*self.theta.shape[:]))
 
 		if self.normalize_on_load.value:
 			self.projs = tomopy.normalize(self.projs, self.flats, self.darks, ncore=self.ncore.value, averaging=self.averaging.value)
-			print("Sinogram: normalized.")
+			logger.info("Sinogram: normalized.")
 
 		self.load_status.set(False)
 		self.COR_slice_ind.set(int(np.mean(self.sino_range.value)))
@@ -395,10 +402,10 @@ class alrecon:
 		self.cor_status.set(True)
 		if self.COR_algorithm.value == "Vo":
 			self.COR_guess.value = tomopy.find_center_vo(self.projs, ncore=self.ncore.value)
-			print("Automatic detected COR: ", self.COR_guess.value, " - tomopy.find_center_vo")
+			logger.info("Automatic detected COR: {0} - tomopy.find_center_vo".format(self.COR_guess.value))
 		elif self.COR_algorithm.value == "TomoPy":
 			self.COR_guess.value = tomopy.find_center(self.projs, self.theta)[0]
-			print("Automatic detected COR: ", self.COR_guess.value, " - tomopy.find_center")
+			logger.info("Automatic detected COR: {0} - tomopy.find_center".format(self.COR_guess.value))
 
 		self.COR.set(self.COR_guess.value)
 		self.COR_range.set([self.COR_guess.value - 20, self.COR_guess.value + 20])
@@ -412,8 +419,7 @@ class alrecon:
 		                    [self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value],
 		                    ind=int(self.COR_slice_ind.value - self.sino_range.value[0])
 		                    )
-		print("Reconstructed slice with COR range: ",
-		      ([self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value]))
+		logger.info("Reconstructed slice with COR range: {0} - {1}, step: {2}".format(self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value))
 		self.cor_status.set(False)
 
 	def reconstruct_dataset(self):
@@ -429,7 +435,7 @@ class alrecon:
 			elif 'cgls' in self.algorithm.value:
 				options = {'proj_type': 'cuda', 'method': 'CGLS_CUDA', 'num_iter': self.num_iter.value}
 			else:
-				print("Algorithm option not recognized. Will reconstruct with ASTRA FBP CUDA.")
+				logger.warning("Algorithm option not recognized. Will reconstruct with ASTRA FBP CUDA.")
 				options = {'proj_type': 'cuda', 'method': 'FBP_CUDA'}
 			self.recon = tomopy.recon(self.sinogram(), self.theta, center=self.COR.value, algorithm=tomopy.astra, options=options, ncore=1)
 		else:
@@ -439,7 +445,7 @@ class alrecon:
 			if not self.phase_retrieved.value:
 				solara.Error("Phase info not retrieved! I will reconstruct an absorption dataset.", text=False, dense=True, outlined=False)
 
-		print("Dataset reconstructed.")
+		logger.info("Dataset reconstructed.")
 		self.recon_status.set(False)
 		self.reconstructed.set(True)
 		self.recon_counter.set(self.recon_counter.value + 1)
@@ -449,8 +455,8 @@ class alrecon:
 
 			# Estimate GV range from data histogram (0.01 and 0.99 quantiles)
 			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.01, 0.99])
-			print("1% quantile: ", range_min)
-			print("99% quantile: ", range_max)
+			logger.info("1% quantile: {0}".format(range_min))
+			logger.info("99% quantile: {0}".format(range_max))
 			self.Data_min.set(round(range_min, 5))
 			self.Data_max.set(round(range_max, 5))
 
@@ -475,17 +481,17 @@ class alrecon:
 			else:
 				dxchange.writer.write_tiff_stack(self.recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
 		self.recon_status.set(False)
-		print("Dataset written to disk.")
+		logger.info("Dataset written to disk.")
 
 	def remove_stripe(self):
 		if self.stripe_removal_method.value == 'remove_dead_stripe':
 			self.stripe_removal_status.set(True)
 			self.projs_stripe = tomopy.prep.stripe.remove_dead_stripe(self.projs, snr=self.stripe_removal_snr.value, size=self.stripe_removal_size.value, ncore=self.ncore.value)
-			print("Stripes removed with method: {}\n".format(str(self.stripe_removal_method)))
+			logger.info("Stripes removed with method: {}\n".format(str(self.stripe_removal_method)))
 			self.stripe_removal_status.set(False)
 			self.stripe_removed.set(True)
 		else:
-			print("Stripe removal method not implemented.")
+			logger.warning("Stripe removal method not implemented.")
 
 	def retrieve_phase(self):
 		self.retrieval_status.set(True)
@@ -493,12 +499,12 @@ class alrecon:
 		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value, nchunk=None)
 		phase_end_time = time()
 		phase_time = phase_end_time - phase_start_time
-		print("Phase retrieval time: {} s\n".format(str(phase_time)))
+		logger.info("Phase retrieval time: {} s\n".format(str(phase_time)))
 		self.retrieval_status.set(False)
 		self.phase_retrieved.set(True)
 
 	def cluster_run(self):
-		print('Logging recon to master...')
+		logger.info('Logging recon to master...')
 		self.worker = 'rum'
 		if not self.proj_range_enable.value:
 			self.proj_range.set([0, self.n_proj.value])
@@ -509,9 +515,6 @@ class alrecon:
 		self.update_settings_dictionary()
 		self.glog.log_to_gspread(self.settings)
 
-		# print('launch recon on rum...')
+		# logger.info('launch recon on rum...')
 
 	# del variables
-
-	def myfunc(self):
-		print("Hello my name is " + self.name)
