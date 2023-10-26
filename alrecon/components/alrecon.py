@@ -348,8 +348,11 @@ class alrecon:
 			if self.phase_retrieved.value:
 				return self.projs_phase
 			else:
+				logger.error("Phase object was selected but phase information is not retrieved. I will continue with absorption object.")
+				logger.info("Applied -log transform.")
 				return tomopy.minus_log(self.projs, ncore=self.ncore.value)
 		else:
+			logger.info("Applied -log transform.")
 			return tomopy.minus_log(self.projs, ncore=self.ncore.value)
 
 	def load_and_normalize(self, filename):

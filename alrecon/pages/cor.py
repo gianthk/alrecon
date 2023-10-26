@@ -2,7 +2,6 @@ import solara
 
 from . import CORdisplay, CORinspect, DatasetInfo, SetCOR, OutputSettings, NapariViewer, ImageJViewer
 
-
 @solara.component
 def Page():
     with solara.Sidebar():
