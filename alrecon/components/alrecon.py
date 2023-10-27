@@ -499,7 +499,7 @@ class alrecon:
 		self.recon_status.set(False)
 		logger.info("Dataset written to disk.")
 
-	def remove_stripe(self):
+	def remove_stripes(self):
 		# implemented stripe removal methods: 'remove_dead_stripe', 'remove_large_stripe', 'remove_stripe_based_sorting', 'remove_all_stripe'
 
 		self.stripe_removal_status.set(True)
@@ -508,9 +508,9 @@ class alrecon:
 		elif self.stripe_removal_method.value == 'remove_large_stripe':
 			self.projs_stripe = tomopy.prep.stripe.remove_large_stripe(self.projs, snr=self.snr.value, size=self.size.value, drop_ratio=self.drop_ratio.value, norm=self.norm.value, ncore=self.ncore.value)
 		elif self.stripe_removal_method.value == 'remove_stripe_based_sorting':
-			self.projs_stripe = tomopy.prep.stripe.remove_large_stripe(self.projs, size=self.size.value, dim=self.dim.value, ncore=self.ncore.value)
+			self.projs_stripe = tomopy.prep.stripe.remove_stripe_based_sorting(self.projs, size=self.size.value, dim=self.dim.value, ncore=self.ncore.value)
 		elif self.stripe_removal_method.value == 'remove_all_stripe':
-			self.projs_stripe = tomopy.prep.stripe.remove_large_stripe(self.projs, snr=self.snr.value, la_size=self.la_size.value, sm_size=self.sm_size.value, dim=self.dim.value, ncore=self.ncore.value)
+			self.projs_stripe = tomopy.prep.stripe.remove_all_stripe(self.projs, snr=self.snr.value, la_size=self.la_size.value, sm_size=self.sm_size.value, dim=self.dim.value, ncore=self.ncore.value)
 		else:
 			logger.error("Stripe removal method not implemented.")
 
@@ -540,6 +540,7 @@ class alrecon:
 		self.update_settings_dictionary()
 		self.glog.log_to_gspread(self.settings)
 
-		# logger.info('launch recon on rum...')
+		logger.info('Launch recon on SESAME rum cluster...')
+		logger.error('Not implemented yet.')
 
 	# del variables
