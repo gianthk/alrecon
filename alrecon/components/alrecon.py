@@ -18,99 +18,7 @@ logger_dxchange = logging.getLogger("dxchange")
 logger_dxchange.setLevel(logging.CRITICAL)
 
 from alrecon.components import gspreadlog
-
-# touint should be imported from recon_utils
-def touint(data_3D, dtype='uint8', range=None, quantiles=None, numexpr=True, subset=True):
-    """Normalize and convert data to unsigned integer.
-
-    Parameters
-    ----------
-    data_3D
-        Input data.
-    dtype
-        Output data type ('uint8' or 'uint16').
-    range : [float, float]
-        Control range for data normalization.
-    quantiles : [float, float]
-        Define range for data normalization through input data quantiles. If range is given this input is ignored.
-    numexpr : bool
-        Use fast numerical expression evaluator for NumPy (memory expensive).
-    subset : bool
-        Use subset of the input data for quantile calculation.
-
-    Returns
-    -------
-    output : uint
-        Normalized data.
-    """
-
-    def convertfloat():
-        return data_3D.astype(np.float32, copy=False), np.float32(data_max - data_min), np.float32(data_min)
-
-    def convertint():
-        if dtype == 'uint8':
-            return convert8bit()
-        elif dtype == 'uint16':
-            return convert16bit()
-
-    def convert16bit():
-
-        data_3D_float, df, mn = convertfloat()
-
-        if numexpr:
-            import numexpr as ne
-
-            scl = ne.evaluate('0.5+65535*(data_3D_float-mn)/df', truediv=True)
-            ne.evaluate('where(scl<0,0,scl)', out=scl)
-            ne.evaluate('where(scl>65535,65535,scl)', out=scl)
-            return scl.astype(np.uint16)
-        else:
-            data_3D_float = 0.5 + 65535 * (data_3D_float - mn) / df
-            data_3D_float[data_3D_float < 0] = 0
-            data_3D_float[data_3D_float > 65535] = 65535
-            return np.uint16(data_3D_float)
-
-    def convert8bit():
-
-        data_3D_float, df, mn = convertfloat()
-
-        if numexpr:
-            import numexpr as ne
-
-            scl = ne.evaluate('0.5+255*(data_3D_float-mn)/df', truediv=True)
-            ne.evaluate('where(scl<0,0,scl)', out=scl)
-            ne.evaluate('where(scl>255,255,scl)', out=scl)
-            return scl.astype(np.uint8)
-        else:
-            data_3D_float = 0.5 + 255 * (data_3D_float - mn) / df
-            data_3D_float[data_3D_float < 0] = 0
-            data_3D_float[data_3D_float > 255] = 255
-            return np.uint8(data_3D_float)
-
-    if range == None:
-
-        # if quantiles is empty data is scaled based on its min and max values
-        if quantiles == None:
-            data_min = np.nanmin(data_3D)
-            data_max = np.nanmax(data_3D)
-            data_max = data_max - data_min
-            return convertint()
-        else:
-            if subset:
-                [data_min, data_max] = np.quantile(np.ravel(data_3D[0::10, 0::10, 0::10]), quantiles)
-            else:
-                [data_min, data_max] = np.quantile(np.ravel(data_3D), quantiles)
-
-            return convertint()
-
-    else:
-        # ignore quantiles input if given
-        if quantiles is not None:
-            logger.warning('Quantiles input ignored.')
-
-        data_min = range[0]
-        data_max = range[1]
-        return convertint()
+from alrecon.components.recon_utils import touint
 
 def generate_title():
 	titles = ["Al-Recon. CT reconstruction for dummies",
@@ -142,13 +50,8 @@ class alrecon:
 		self.saved_info = False
 		self.worker = 'local' # 'rum'
 		self.exp_time = 0.
-		self.projs = np.zeros([0, 0, 0])
-		self.projs_stripe = np.zeros([0, 0, 0])
-		self.projs_phase = np.zeros([0, 0, 0])
-		self.flats = np.zeros([0, 0])
-		self.darks = np.zeros([0, 0])
-		self.recon = np.zeros([0, 0, 0])
 		self.theta = np.zeros(1)
+		self.init_3Darrays()
 
 		self.dataset = solara.reactive('')
 		self.n_proj = solara.reactive(10001)
@@ -182,6 +85,14 @@ class alrecon:
 		self.phase_retrieved = solara.reactive(False)
 
 		self.glog = gspreadlog.logger(key=self.gspread_key.value, experiment_name=self.experiment_name.value)
+
+	def init_3Darrays(self):
+		self.projs = np.zeros([0, 0, 0])
+		self.projs_stripe = np.zeros([0, 0, 0])
+		self.projs_phase = np.zeros([0, 0, 0])
+		self.flats = np.zeros([0, 0])
+		self.darks = np.zeros([0, 0])
+		self.recon = np.zeros([0, 0, 0])
 
 	def check_settings_paths(self):
 		search_key = '_dir'
@@ -369,6 +280,11 @@ class alrecon:
 			return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
 
 	def load_and_normalize(self, filename):
+		# free some space
+		del self.projs,self.flats,self.darks, self.projs_phase, self.projs_stripe, self.recon
+		# reinit 3D arrays
+		self.init_3Darrays()
+
 		self.load_status.set(True)
 
 		if not self.proj_range_enable.value:
@@ -380,14 +296,7 @@ class alrecon:
 		self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1), proj=(self.proj_range.value[0], self.proj_range.value[1], 1))
 		self.theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
 
-		# if self.proj_range_enable.value:
-		# 	self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1), proj=(self.proj_range.value[0], self.proj_range.value[1], 1))
-		# 	self.theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
-		# else:
-		# 	self.projs, self.flats, self.darks, self.theta = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
-
 		self.loaded_file.set(True)
-		# self.dataset.set(path.splitext(path.basename(filename))[0])
 
 		self.sino_range.set([self.sino_range.value[0], self.sino_range.value[0] + self.projs.shape[1]])
 		self.proj_range.set([self.proj_range.value[0], self.proj_range.value[0] + self.projs.shape[0]])
@@ -396,7 +305,6 @@ class alrecon:
 		self.flats_shape.set(self.flats.shape)
 		self.darks_shape.set(self.darks.shape)
 
-		# logger.info("Dataset size: ", self.projs[:, :, :].shape[:], " - dtype: ", self.projs.dtype)
 		logger.info("Dataset size: {0} x {1} x {2} - dtype: {3}".format(*self.projs[:, :, :].shape[:], self.projs.dtype))
 		logger.info("Flat fields size: {0} x {1} x {2}".format(*self.flats[:, :, :].shape[:]))
 		logger.info("Dark fields size: {0} x {1} x {2}".format(*self.darks[:, :, :].shape[:]))
@@ -408,8 +316,6 @@ class alrecon:
 
 		self.load_status.set(False)
 		self.COR_slice_ind.set(int(np.mean(self.sino_range.value)))
-
-		# self.set_phase_params(filename)
 
 		if self.COR_auto.value:
 			self.guess_COR()
