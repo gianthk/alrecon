@@ -5,6 +5,7 @@ import plotly.express as px
 import solara.express as spx
 
 from alrecon.components import alrecon, viewers
+from alrecon.pages.settings import Page as PageSettings
 ar = alrecon.alrecon()
 view = viewers.viewers()
 
@@ -161,20 +162,26 @@ def OutputControls():
                     solara.SliderFloat("Diameter ratio", value=ar.circmask_ratio, min=0.5, max=1.0, step=0.01, thumb_label='always', disabled=not(ar.circmask.value))
 
 @solara.component
-def GeneralSettings(disabled=False, style=None):
-    solara.InputText("Experiment name", value=ar.experiment_name, on_value=ar.set_output_dirs(), continuous_update=False, disabled=disabled)
-    solara.InputText("Experiment directory", value=ar.experiment_dir, on_value=ar.check_path(ar.experiment_dir), continuous_update=False, disabled=disabled)
-    # solara.InputText("Master file", value=ar.master_file, continuous_update=False, disabled=disabled)
-
-    OutputSettings()
-
-@solara.component
 def OutputSettings(disabled=False, style=None):
     with solara.Card("Output directories", margin=0, classes=["my-2"]):
         solara.Switch(label="Auto-complete", value=ar.auto_complete) # , style={"height": "20px"}
         solara.InputText("Reconstruction directory", value=ar.recon_dir, on_value=ar.check_path(ar.recon_dir, True), continuous_update=False, disabled=disabled)
         solara.InputText("COR directory", value=ar.cor_dir, continuous_update=False, on_value=ar.check_path(ar.cor_dir, True),disabled=disabled)
         solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False, disabled=disabled)
+
+@solara.component
+def ReconSettings():
+    with solara.Card("Reconstruction settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+        solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
+        solara.InputInt("Number of algorithm iterations", value=ar.num_iter, continuous_update=False)
+
+@solara.component
+def GeneralSettings(disabled=False, style=None):
+    solara.InputText("Experiment name", value=ar.experiment_name, on_value=ar.set_output_dirs(), continuous_update=False, disabled=disabled)
+    solara.InputText("Experiment directory", value=ar.experiment_dir, on_value=ar.check_path(ar.experiment_dir), continuous_update=False, disabled=disabled)
+    # solara.InputText("Master file", value=ar.master_file, continuous_update=False, disabled=disabled)
+
+    OutputSettings()
 
 @solara.component
 def DefaultSettings():
@@ -186,12 +193,6 @@ def DefaultSettings():
         solara.Switch(label="Normalize dataset upon loading", value=ar.normalize_on_load, style={"height": "20px"})
         solara.Switch(label="Attempt auto COR upon loading", value=ar.COR_auto, style={"height": "40px"})
         solara.InputText("ImageJ launcher", value=ar.imagej_launcher, continuous_update=False)
-
-@solara.component
-def ReconSettings():
-    with solara.Card("Reconstruction settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
-        solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
-        solara.InputInt("Number of algorithm iterations", value=ar.num_iter, continuous_update=False)
 
 @solara.component
 def ModifySettings():
@@ -271,6 +272,7 @@ def Page(jupyter=False):
 def Layout(children):
     return solara.AppLayout(children=children)
 
+# The following are copies of all alrecon.pages used for executing the app within Jupyter
 @solara.component
 def PageSettings():
     solara.Title("Settings")
