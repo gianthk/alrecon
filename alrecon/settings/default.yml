@@ -18,9 +18,16 @@ sino_range: [980, 1020]
 proj_range: [0, 4001]
 averaging: 'mean'
 # Stripe removal settings
-stripe_removal_method: 'remove_dead_stripe'
-stripe_removal_snr: 3.
-stripe_removal_size: 51
+stripe_remove: False
+stripe_removal_method: 'remove_all_stripe'
+snr: 3.
+sigma: 3.
+size: 51
+norm: True
+la_size: 61
+sm_size: 21
+dim: 1
+drop_ratio: 0.1
 # Center Of Rotation settings
 COR: 1280
 COR_step: 1
@@ -45,16 +52,3 @@ circmask_ratio: 0.9
 # Plot settings
 plotreconhist: False
 hist_speed: 'fast'
-# Stripe removal settings
-snr: 3.
-sigma: 3.
-size: 51
-remove_stripe_ti_alpha: 1.5
-drop_ratio: 0.1
-norm: True
-la_size: 61
-sm_size: 21
-dim: 1
-order: 3
-wname: 'db5'
-remove_stripe_fw_pad: True

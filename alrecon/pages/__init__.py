@@ -5,7 +5,6 @@ import plotly.express as px
 import solara.express as spx
 
 from alrecon.components import alrecon, viewers
-from alrecon.pages.settings import Page as PageSettings
 ar = alrecon.alrecon()
 view = viewers.viewers()
 
@@ -14,6 +13,7 @@ continuous_update = solara.reactive(True)
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
+dim_values = [1, 2]
 
 @solara.component
 def CORdisplay():
@@ -128,8 +128,6 @@ def PhaseRetrieval():
                     solara.InputFloat("Energy [keV]", value=ar.energy, continuous_update=False, disabled=not (ar.phase_object.value))
                     solara.InputFloat("\u03B1 = 1 / (4 \u03C0\u00b2 \u03B4 / \u03B2)", value=ar.alpha, continuous_update=False, disabled=not (ar.phase_object.value))
 
-                    # solara.Select("I stretch twice the amount", values=["a", "b", "c"], value="a")
-
 @solara.component
 def Recon():
     with solara.Card("Launch recon", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
@@ -235,6 +233,32 @@ def ReconHistogram():
                               opacity=0.25,
                               line_width=0)
                 spx.CrossFilteredFigurePlotly(fig)
+
+@solara.component
+def StripeRemoval():
+    with solara.Card("Remove stripe artifacts from sinogram", subtitle="See https://tomopy.readthedocs.io/en/latest/api/tomopy.prep.stripe.html#", elevation=2, margin=0, classes=["my-2"], style={"width": "600px"}):
+        with solara.Column():
+            with solara.Column(style={"margin": "0px"}):
+                solara.Switch(label="Apply stripe removal before reconstruction", value=ar.stripe_remove, disabled=not(ar.loaded_file.value)) # , style={"height": "20px", "vertical-align": "top"}
+                solara.Button(label="Process sinogram to remove stripes", icon_name="mdi-play", on_click=lambda: ar.remove_stripes(), disabled=not (ar.stripe_remove.value))
+                solara.ProgressLinear(ar.stripe_removal_status.value)
+
+            with solara.Card(subtitle="Stripe removal parameters", margin=0, classes=["my-2"]):
+                with solara.Column(gap='4px'):
+                    solara.Select("Stripe removal method", value=ar.stripe_removal_method, values=ar.stripe_removal_methods, disabled=not (ar.stripe_remove.value))
+                    solara.InputFloat("snr - Ratio used to locate large stripes. Greater is less sensitive.", value=ar.snr, continuous_update=False, disabled=not (ar.stripe_remove.value))
+                    solara.InputFloat("sigma - \u03C3 of the gaussian window used to separate stripes. Recommended values: 3->10.",
+                                      value=ar.sigma, continuous_update=False, disabled=not (ar.stripe_remove.value))
+                    solara.InputInt("size - Window size of the median filter.",
+                        value=ar.size, continuous_update=False, disabled=not (ar.stripe_remove.value))
+                    solara.InputInt("la_size - Window size of the median filter to remove large stripes.",
+                                    value=ar.la_size, continuous_update=False, disabled=not (ar.stripe_remove.value))
+                    solara.InputInt("sm_size - Window size of the median filter to remove small-to-medium stripes.",
+                                    value=ar.sm_size, continuous_update=False, disabled=not (ar.stripe_remove.value))
+                    solara.InputFloat('drop_ratio (float, optional) – Ratio of pixels to be dropped, which is used to reduce the false detection of stripes',
+                        value=ar.drop_ratio, continuous_update=False, disabled=not (ar.stripe_remove.value))
+                    solara.SliderValue(label='Dimension of the window', value=ar.dim, values=dim_values, disabled=not (ar.stripe_remove.value))
+                    solara.Switch(label="Apply normalization / Remove residual stripes", value=ar.norm, disabled=not (ar.stripe_remove.value)) # style={"height": "20px", "vertical-align": "top"}
 
 @solara.component
 def Page(jupyter=False):

@@ -136,7 +136,7 @@ class alrecon:
 	def __init__(self):
 		self.algorithms = ["gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra"]
 		self.averagings = ['mean', 'median']
-		self.stripe_removal_methods = ['remove_dead_stripe', 'remove_all_stripe', 'remove_large_stripe', 'remove_stripe_based_fitting']
+		self.stripe_removal_methods = ['remove_dead_stripe', 'remove_large_stripe', 'remove_stripe_based_sorting', 'remove_all_stripe']
 		self.title = generate_title()
 		self.init_settings(settings_file())
 		self.saved_info = False
@@ -343,17 +343,30 @@ class alrecon:
 				self.pixelsize.set(self.camera_pixel_size / self.magnification)
 
 	def sinogram(self):
+		# Return sinogram for pre-processing
+
+		if self.stripe_remove.value:
+			if self.stripe_removed.value:
+				return self.projs_stripe
+			else:
+				logger.error("Stripe removal was selected but the sinogram has not been processed. I will proceed without stripe removal.")
+				return self.projs
+		else:
+			return self.projs
+
+	def processed_sinogram(self):
+		# Return processed sinogram for reconstruction job
 
 		if self.phase_object.value:
 			if self.phase_retrieved.value:
 				return self.projs_phase
 			else:
-				logger.error("Phase object was selected but phase information is not retrieved. I will continue with absorption object.")
+				logger.error("Phase object was selected but phase information is not retrieved. I will reconstruct an absorption object.")
 				logger.info("Applied -log transform.")
-				return tomopy.minus_log(self.projs, ncore=self.ncore.value)
+				return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
 		else:
 			logger.info("Applied -log transform.")
-			return tomopy.minus_log(self.projs, ncore=self.ncore.value)
+			return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
 
 	def load_and_normalize(self, filename):
 		self.load_status.set(True)
@@ -440,9 +453,9 @@ class alrecon:
 			else:
 				logger.warning("Algorithm option not recognized. Will reconstruct with ASTRA FBP CUDA.")
 				options = {'proj_type': 'cuda', 'method': 'FBP_CUDA'}
-			self.recon = tomopy.recon(self.sinogram(), self.theta, center=self.COR.value, algorithm=tomopy.astra, options=options, ncore=1)
+			self.recon = tomopy.recon(self.processed_sinogram(), self.theta, center=self.COR.value, algorithm=tomopy.astra, options=options, ncore=1)
 		else:
-			self.recon = tomopy.recon(self.sinogram(), self.theta, center=self.COR.value, algorithm=self.algorithm.value, sinogram_order=False, ncore=self.ncore.value)
+			self.recon = tomopy.recon(self.processed_sinogram(), self.theta, center=self.COR.value, algorithm=self.algorithm.value, sinogram_order=False, ncore=self.ncore.value)
 
 		if self.phase_object.value:
 			if not self.phase_retrieved.value:
@@ -487,14 +500,23 @@ class alrecon:
 		logger.info("Dataset written to disk.")
 
 	def remove_stripe(self):
+		# implemented stripe removal methods: 'remove_dead_stripe', 'remove_large_stripe', 'remove_stripe_based_sorting', 'remove_all_stripe'
+
+		self.stripe_removal_status.set(True)
 		if self.stripe_removal_method.value == 'remove_dead_stripe':
-			self.stripe_removal_status.set(True)
-			self.projs_stripe = tomopy.prep.stripe.remove_dead_stripe(self.projs, snr=self.stripe_removal_snr.value, size=self.stripe_removal_size.value, ncore=self.ncore.value)
-			logger.info("Stripes removed with method: {}\n".format(str(self.stripe_removal_method)))
-			self.stripe_removal_status.set(False)
-			self.stripe_removed.set(True)
+			self.projs_stripe = tomopy.prep.stripe.remove_dead_stripe(self.projs, snr=self.snr.value, size=self.size.value, ncore=self.ncore.value)
+		elif self.stripe_removal_method.value == 'remove_large_stripe':
+			self.projs_stripe = tomopy.prep.stripe.remove_large_stripe(self.projs, snr=self.snr.value, size=self.size.value, drop_ratio=self.drop_ratio.value, norm=self.norm.value, ncore=self.ncore.value)
+		elif self.stripe_removal_method.value == 'remove_stripe_based_sorting':
+			self.projs_stripe = tomopy.prep.stripe.remove_large_stripe(self.projs, size=self.size.value, dim=self.dim.value, ncore=self.ncore.value)
+		elif self.stripe_removal_method.value == 'remove_all_stripe':
+			self.projs_stripe = tomopy.prep.stripe.remove_large_stripe(self.projs, snr=self.snr.value, la_size=self.la_size.value, sm_size=self.sm_size.value, dim=self.dim.value, ncore=self.ncore.value)
 		else:
-			logger.warning("Stripe removal method not implemented.")
+			logger.error("Stripe removal method not implemented.")
+
+		logger.info("Stripes removed with method: {}\n".format(str(self.stripe_removal_method.value)))
+		self.stripe_removal_status.set(False)
+		self.stripe_removed.set(True)
 
 	def retrieve_phase(self):
 		self.retrieval_status.set(True)

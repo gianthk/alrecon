@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "alrecon"
-description = "The TomoPy reconstruction SOLARA GUI"
+#description = "The TomoPy reconstruction SOLARA GUI"
 license = {file = "LICENSE"}
 authors = [
     { name="Gianluca Iori", email="gianthk.iori@gmail.com" },
@@ -32,10 +32,10 @@ requires-python = ">=3.7"
 dynamic = ["version", "description"]
 dependencies = [
     "pathlib",
-    "logging",
-    "random",
-    "time",
-    "math",
+#    "logging",
+#    "random",
+#    "time",
+#    "math",
     "numpy",
     "solara",
     "plotly",
