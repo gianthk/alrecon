@@ -6,7 +6,7 @@ Pure Python Computed Tomography reconstruction web application. Built with Solar
 Micro Finite Element (microFE) models can be derived from micro Computed Tomography (microCT) 3D images to non-destructively assess mechanical properties of biological or artificial specimens. <br />
 **ciclope** provides fully open-source pipelines from microCT data preprocessing to microFE model generation, solution and postprocessing. <br />
 
-![](test_data/LHDL/3155_D_4_bc/results/LHDL_voxelFE_U3.png)
+![](docs/alrecon_home.gif)
 
 ## Installation
 Install `alrecon` using pip. The flag `[all]` will install optional dependencies required for integration with [`napari`](https://napari.org) and logging to google spreadsheets.
