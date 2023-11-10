@@ -14,7 +14,9 @@ imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
 expert: False
 ncore: 4
 normalize_on_load: True
+recon_sino_range: False
 sino_range: [980, 1020]
+recon_proj_range: False
 proj_range: [0, 4001]
 averaging: 'mean'
 # Stripe removal settings

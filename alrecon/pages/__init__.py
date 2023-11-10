@@ -288,7 +288,12 @@ def Page(jupyter=False):
             with solara.Columns([0,1,2], gutters_dense=True):
                 with solara.Column():
                     Recon()
-                    solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'), color="primary")
+                    with solara.Card('Reconstruct on HPC cluster', margin=0, classes=["my-2"])
+                        with solara.Column():
+                            solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'), color="primary")
+                            with solara.Row():
+                                solara.Switch(label='Sino ramge', value=ar.recon_sino_range, style={"height": "20px"})
+                                solara.Switch(label='Proj ramge', value=ar.recon_proj_range, style={"height": "20px"})
                 OutputControls()
                 ReconHistogram()
 
