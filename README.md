@@ -15,9 +15,15 @@ pip install alrecon[all]
 ```
 1. Checkout this repository:
 ```commandline
-git clone https://github.com/gianthk/alrecon/blob/master
+git clone https://github.com/gianthk/alrecon.git
 ```
-2. Create and activate a virtual environment for the application:
+2. Navigate to the repository and create a virtual environment with the dependencies required by the application:
+```commandline
+cd alrecon
+conda create --file alrecon.yml
+conda activate alrecon
+```
+3. Create and activate a virtual environment for the application:
 ```commandline
 conda create -n alrecon
 conda activate alrecon
