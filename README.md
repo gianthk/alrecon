@@ -19,7 +19,7 @@ git clone https://github.com/gianthk/alrecon/blob/master
 ```
 2. Create and activate a virtual environment for the application:
 ```commandline
-conda env create -n alrecon
+conda create -n alrecon
 conda activate alrecon
 ```
 3. Install dependencies with:
