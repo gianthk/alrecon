@@ -159,6 +159,8 @@ def OutputControls():
                     solara.Switch(value=ar.circmask, style={"height": "10px", "vertical-align": "top"})
                     solara.SliderFloat("Diameter ratio", value=ar.circmask_ratio, min=0.5, max=1.0, step=0.01, thumb_label='always', disabled=not(ar.circmask.value))
 
+            solara.Switch(label="Write recon midplanes", value=ar.writemidplanes, style={"height": "10px", "vertical-align": "top"})
+
 @solara.component
 def OutputSettings(disabled=False, style=None):
     with solara.Card("Output directories", margin=0, classes=["my-2"]):

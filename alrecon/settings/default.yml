@@ -49,6 +49,7 @@ uintconvert: False
 bitdepth: 'uint8'
 circmask: False
 circmask_ratio: 0.9
+writemidplanes: True
 # Plot settings
 plotreconhist: False
 hist_speed: 'fast'

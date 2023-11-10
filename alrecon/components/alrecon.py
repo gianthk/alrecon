@@ -1,3 +1,18 @@
+"""
+This is the main class of Al-recon: a Computed Tomography reconstruction web application running on solara.
+For more information, visit the project homepage:
+	https://github.com/gianthk/alrecon
+"""
+
+__author__ = ['Gianluca Iori']
+__date_created__ = '2023-08-01'
+__date__ = '2023-11-10'
+__copyright__ = 'Copyright (c) 2023, SESAME'
+__docformat__ = 'restructuredtext en'
+__license__ = "MIT"
+__maintainer__ = 'Gianluca Iori'
+__email__ = "gianthk.iori@gmail.com"
+
 import os.path
 
 import yaml
@@ -435,6 +450,9 @@ class alrecon:
 		self.phase_retrieved.set(True)
 
 	def cluster_run(self):
+		"""Logs reconstruction info to master google spreadsheet using gspread. Generates and submit a slurm reconstruction job file to HPC cluster.
+		"""
+
 		logger.info('Logging recon to master...')
 		self.worker = 'rum'
 		if not self.proj_range_enable.value:
@@ -445,6 +463,9 @@ class alrecon:
 
 		self.update_settings_dictionary()
 		self.glog.log_to_gspread(self.settings)
+
+		logger.info('Write Slurm reconstruction job...')
+
 
 		logger.info('Launch recon on SESAME rum cluster...')
 		logger.error('Not implemented yet.')
