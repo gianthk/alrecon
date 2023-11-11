@@ -8,7 +8,6 @@ except ImportError:
     # raise ImportError('gspread not available for dataframe logging.')
     logging.error('gspread not available for dataframe logging.')
 
-
 def spreadsheetname(experiment_name=''):
     if experiment_name == '':
         return 'master'

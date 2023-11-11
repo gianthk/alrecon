@@ -35,6 +35,11 @@ logger_dxchange.setLevel(logging.CRITICAL)
 from alrecon.components import gspreadlog
 from alrecon.components.recon_utils import touint
 
+from pathlib import Path
+
+def get_project_root() -> Path:
+    return str(Path(__file__).parent.parent)
+
 def generate_title():
 	titles = ["Al-Recon. CT reconstruction for dummies",
 			  "Al-Recon. Have fun reconstructing",
@@ -48,12 +53,12 @@ def generate_title():
 
 def settings_file():
 	# check if user settings file exists
-	user_settings_file = 'alrecon/settings/' + getlogin() + '.yml'
+	user_settings_file = get_project_root() + '/settings/' + getlogin() + '.yml'
 
 	if path.isfile(user_settings_file):
 		return user_settings_file
 	else:
-		return 'alrecon/settings/default.yml'
+		return get_project_root() + '/settings/default.yml'
 
 class alrecon:
 	def __init__(self):
@@ -99,7 +104,15 @@ class alrecon:
 		self.retrieval_status = solara.reactive(False)
 		self.phase_retrieved = solara.reactive(False)
 
-		self.glog = gspreadlog.logger(key=self.gspread_key.value, experiment_name=self.experiment_name.value)
+		self.attempt_glog_init()
+
+	def attempt_glog_init(self):
+		try:
+			self.glog = gspreadlog.logger(key=self.gspread_key.value, experiment_name=self.experiment_name.value)
+		except:
+			logger.error('Could not initialize gspread logger. Make sure that the gspread_key specified in your settings file exists, and that you have correct permissions.')
+			self.glog = None
+			self.gspread_logging.set(False)
 
 	def init_3Darrays(self):
 		self.projs = np.zeros([0, 0, 0])
@@ -452,22 +465,30 @@ class alrecon:
 	def cluster_run(self):
 		"""Logs reconstruction info to master google spreadsheet using gspread. Generates and submit a slurm reconstruction job file to HPC cluster.
 		"""
+		if not self.recon_sino_range.value:
+			self.sino_range_enable.set(False)
 
-		logger.info('Logging recon to master...')
-		self.worker = 'rum'
-		if not self.proj_range_enable.value:
-			self.proj_range.set([0, self.n_proj.value])
+		if not self.recon_proj_range.value:
+			self.proj_range_enable.set(False)
 
-		if not self.sino_range_enable.value:
-			self.sino_range.set([0, self.sino_rows.value])
+		if self.gspread_logging.value:
+			if self.glog is None:
+				self.attempt_glog_init()
 
-		self.update_settings_dictionary()
-		self.glog.log_to_gspread(self.settings)
+		if self.gspread_logging.value:
+			logger.info('Logging recon to master...')
+			self.worker = 'rum'
+			if not self.proj_range_enable.value:
+				self.proj_range.set([0, self.n_proj.value])
 
-		logger.info('Write Slurm reconstruction job...')
+			if not self.sino_range_enable.value:
+				self.sino_range.set([0, self.sino_rows.value])
 
+			self.update_settings_dictionary()
+			self.glog.log_to_gspread(self.settings)
 
-		logger.info('Launch recon on SESAME rum cluster...')
-		logger.error('Not implemented yet.')
+		logger.info('Write Slurm reconstruction job. -Not implemented yet-')
+
+		logger.info('Launch recon on SESAME rum cluster. -Not implemented yet-')
 
 	# del variables

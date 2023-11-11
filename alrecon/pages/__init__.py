@@ -159,8 +159,6 @@ def OutputControls():
                     solara.Switch(value=ar.circmask, style={"height": "10px", "vertical-align": "top"})
                     solara.SliderFloat("Diameter ratio", value=ar.circmask_ratio, min=0.5, max=1.0, step=0.01, thumb_label='always', disabled=not(ar.circmask.value))
 
-            solara.Switch(label="Write recon midplanes", value=ar.writemidplanes, style={"height": "10px", "vertical-align": "top"})
-
 @solara.component
 def OutputSettings(disabled=False, style=None):
     with solara.Card("Output directories", margin=0, classes=["my-2"]):
@@ -185,7 +183,7 @@ def GeneralSettings(disabled=False, style=None):
 
 @solara.component
 def DefaultSettings():
-    with solara.Card("", style={"max-width": "500px"}, margin=0, classes=["my-2"]): # Default settings
+    with solara.Card("General settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]): # Default settings
         solara.InputInt("Number of cores", value=ar.ncore, continuous_update=False)
         # solara.InputText("Sinogram averaging:", value=ar.averaging, continuous_update=False)
         solara.Select("Sinogram averaging", value=ar.averaging, values=ar.averagings)
@@ -193,6 +191,14 @@ def DefaultSettings():
         solara.Switch(label="Normalize dataset upon loading", value=ar.normalize_on_load, style={"height": "20px"})
         solara.Switch(label="Attempt auto COR upon loading", value=ar.COR_auto, style={"height": "40px"})
         solara.InputText("ImageJ launcher", value=ar.imagej_launcher, continuous_update=False)
+
+@solara.component
+def HPCSettings():
+    with solara.Card("HPC integration settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]): # Default settings
+        solara.Switch(label="Log to master google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
+        solara.Switch(label="Load sinogram range", value=ar.recon_sino_range, style={"height": "20px"})
+        solara.Switch(label="Load projections range", value=ar.recon_proj_range, style={"height": "20px"})
+        solara.Switch(label="Write midplanes images", value=ar.write_midplanes, style={"height": "40px"})
 
 @solara.component
 def ModifySettings():
@@ -288,16 +294,27 @@ def Page(jupyter=False):
             with solara.Columns([0,1,2], gutters_dense=True):
                 with solara.Column():
                     Recon()
-                    with solara.Card('Reconstruct on HPC cluster', margin=0, classes=["my-2"])
-                        with solara.Column():
-                            solara.Button(label="Submit to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'), color="primary")
-                            with solara.Row():
-                                solara.Switch(label='Sino ramge', value=ar.recon_sino_range, style={"height": "20px"})
-                                solara.Switch(label='Proj ramge', value=ar.recon_proj_range, style={"height": "20px"})
+                    solara.Button(label="Submit job to cluster", icon_name="mdi-rocket",
+                                  on_click=lambda: ar.cluster_run(),
+                                  disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
+
                 OutputControls()
                 ReconHistogram()
 
             solara.Success(f"This al-recon instance reconstructed {ar.recon_counter.value} datasets.", text=True, dense=True, outlined=True, icon=True)
+
+    with solara.Card('Reconstruct on HPC cluster', subtitle='Keep working while our cluster takes care of the job.', margin=0, classes=["my-2"], style={"width": "700px"}):
+        with solara.Column():
+            solara.Button(label="Submit job to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(),
+                          disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
+            with solara.Row():
+                with solara.Column():
+                    solara.Switch(label='Sinogram range', value=ar.recon_sino_range, style={"height": "20px"})
+                    solara.Switch(label='Projections range', value=ar.recon_proj_range, style={"height": "20px"})
+                with solara.Column():
+                    solara.Switch(label="Write reconstruction midplanes", value=ar.write_midplanes, style={"height": "20px"})
+                    solara.Switch(label="Log to master google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
+
 
 @solara.component
 def Layout(children):
@@ -315,6 +332,7 @@ def PageSettings():
                     DefaultSettings()
                     # with solara.Column(align="stretch"):
                     ReconSettings()
+                    HPCSettings()
             ModifySettings()
 
 Page(jupyter=True)

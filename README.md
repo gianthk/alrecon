@@ -18,14 +18,14 @@ pip install alrecon[all]
 ```commandline
 git clone https://github.com/gianthk/alrecon.git
 ```
-2. Navigate to the repository and create a virtual environment with the dependencies required by the application:
+2. Navigate to the repository and create a virtual environment with all necessary dependencies:
 ```commandline
 cd alrecon
 conda env create --file alrecon.yml
 conda activate alrecon
 ```
 > [!NOTE]
-> If you already have a virtual environment, you can install manually the requirements listed in file [alrecon.yml](alrecon.yml).
+> If you already have a destination virtual environment for alrecon, you can install manually the requirements listed in file [alrecon.yml](alrecon.yml).
 
 3. Build the `alrecon` app:
 ```commandline
@@ -33,32 +33,41 @@ cd alrecon
 pip install -e .
 ```
 
-### How to contribute
-If you want to contribute to this project, please install `alrecon` following the [development guide](development.md).
-
 ## Usage
 ### Run the `al-recon` [solara](https://solara.dev/api/file_browser) web application on your localhost
 ```commandline
 solara run alrecon.pages --host localhost
 ```
 ### Run `al-recon` within [jupyter](https://solara.dev/api/file_browser)
-1. Install Jupyter kernel with the alrecon environment:
-
-2. Launch a Jupyter Notebook or Jupyter Lab instance:
+1. Make sure that the `alrecon` virtual environment is activated and `ipykernel` installed:
+```commandline
+conda activate alrecon
+pip install --user ipykernel
+```
+or:
+```commandline
+conda install -c anaconda ipykernel 
+```
+2. Install [ipykernel](https://github.com/ipython/ipykernel) with the `alrecon` virtual environment:
+```commandline
+python -m ipykernel install --user --name=alrecon
+```
+3. Launch Jupyter Notebook or Jupyter Lab instance:
 ```commandline
 jupyter lab
 ```
-
-3. Open and run the cells of the notebook [launch_within_jupyter.ipynb](launch_within_jupyter.ipynb). [![Made withJupyter](https://img.shields.io/badge/Made%20with-Jupyter-orange?style=for-the-badge&logo=Jupyter)](launch_within_jupyter.ipynb)
+4. Open and run the cells of the notebook [launch_within_jupyter.ipynb](launch_within_jupyter.ipynb). [![Made withJupyter](https://img.shields.io/badge/Made%20with-Jupyter-orange?style=for-the-badge&logo=Jupyter)](launch_within_jupyter.ipynb)
 
 You can take a look at [solara's documnetation](https://solara.dev/api) for more information on the different ways of running solara applications.
 
-## Notes on ciclope
-* Tetrahedra meshes are generated with [pygalmesh](https://github.com/nschloe/pygalmesh) (a Python frontend to [CGAL](https://www.cgal.org/))
-* High-resolution surface meshes for visualization are generated with the [PyMCubes](https://github.com/pmneila/PyMCubes) module.
-* All mesh exports are performed with the [meshio](https://github.com/nschloe/meshio) module.
-* **ciclope** handles the definition of material properties and FE analysis parameters (e.g. boundary conditions, simulation steps..) through separate template files. The folders [material_properties](/material_properties) and [input_templates](/input_templates) contain a library of template files that can be used to generate FE simulations.
-  * Additional libraries of [CalculiX](https://github.com/calculix) examples and template files can be found [here](https://github.com/calculix/examples) and [here](https://github.com/calculix/mkraska)
+---
+## Integration with Google Sheets
+- `Alrecon` allows you to keep a consistent log of all reconstruction jobs on an online master Google spreadsheet.
+- The integration uses [gspread](https://docs.gspread.org/en/v5.12.0/), a Python API for Google Sheets.
+- You will need to setup your Google account, enable Google Sheets API, and create a Secret Key for accessing your online master. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets.
+
+## Use with [napari](https://napari.org/stable/)
+napari is a pure Python powerfull viewer for multi-dimensional images. Until now, alrecon supports napari only when [running the app through Jupyter](###Runal-recon_within_).
 
 ## Acknowledgements
-This project was partially developed during the Jupyter Community Workshop [“Building the Jupyter Community in Musculoskeletal Imaging Research”](https://github.com/JCMSK/2022_JCW) sponsored by [NUMFocus](https://numfocus.org/).
+This work was performed within the [BEATS](https://beats-sesame.eu/) project and has received funding from the EU’s H2020 framework programme for research and innovation under grant agreement n° [822535](https://cordis.europa.eu/project/id/822535).

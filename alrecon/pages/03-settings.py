@@ -1,6 +1,6 @@
 import solara
 
-from . import ReconSettings, GeneralSettings, DefaultSettings, ModifySettings
+from . import ReconSettings, GeneralSettings, DefaultSettings, ModifySettings, HPCSettings
 
 @solara.component
 def Page():
@@ -14,4 +14,5 @@ def Page():
                     DefaultSettings()
                     # with solara.Column(align="stretch"):
                     ReconSettings()
+                    HPCSettings()
             ModifySettings()
