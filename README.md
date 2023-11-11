@@ -24,8 +24,8 @@ cd alrecon
 conda env create --file alrecon.yml
 conda activate alrecon
 ```
-[!NOTE]
-If you already have a virtual environment, you can install manually the requirements listed in file [alrecon.yml](alrecon.yml).
+> [!NOTE]
+> If you already have a virtual environment, you can install manually the requirements listed in file [alrecon.yml](alrecon.yml).
 
 3. Build the `alrecon` app:
 ```commandline
