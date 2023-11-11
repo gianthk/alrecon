@@ -33,16 +33,11 @@ cd alrecon
 pip install -e .
 ```
 
-4. Run the `alrecon` web application on localhost:
-```commandline
-solara run alrecon.pages --host localhost
-```
-
 ### How to contribute
 If you want to contribute to this project, please install `alrecon` following the [development guide](development.md).
 
 ## Usage
-### Run the `al-recon` [solara](https://solara.dev/api/file_browser) web app on your localhost
+### Run the `al-recon` [solara](https://solara.dev/api/file_browser) web application on your localhost
 ```commandline
 solara run alrecon.pages --host localhost
 ```
