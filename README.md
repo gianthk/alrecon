@@ -67,7 +67,7 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 - You will need to setup your Google account, enable Google Sheets API, and create a Secret Key for accessing your online master. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets.
 
 ## Use with [napari](https://napari.org/stable/)
-napari is a pure Python powerfull viewer for multi-dimensional images. Until now, alrecon supports napari only when [running the app through Jupyter](###Runal-recon_within_).
+napari is a pure Python powerfull viewer for multi-dimensional images. Until now, alrecon supports napari only when [running the app through Jupyter](#run-al-recon-within-jupyter).
 
 ## Acknowledgements
 This work was performed within the [BEATS](https://beats-sesame.eu/) project and has received funding from the EU’s H2020 framework programme for research and innovation under grant agreement n° [822535](https://cordis.europa.eu/project/id/822535).
