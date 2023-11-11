@@ -2,6 +2,7 @@
 master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
 master_spreadsheet: 'master'
 gspread_key: ''
+gspread_logging: False
 experiment_dir: "/PETRA/SED/BEATS/IH/"
 experiment_name: '<experiment_name>'
 h5file: ''
