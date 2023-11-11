@@ -5,7 +5,9 @@ try:
     from gspread_dataframe import get_as_dataframe, set_with_dataframe
     from oauth2client.service_account import ServiceAccountCredentials
 except ImportError:
-    raise ImportError('gspread not available for dataframe logging.')
+    # raise ImportError('gspread not available for dataframe logging.')
+    logging.error('gspread not available for dataframe logging.')
+
 
 def spreadsheetname(experiment_name=''):
     if experiment_name == '':

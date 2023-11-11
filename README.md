@@ -1,18 +1,19 @@
 # Al-recon
-Pure Python Computed Tomography reconstruction web application. Built with Solara.
+Pure Python Computed Tomography reconstruction web application. Built with [Solara](https://solara.dev/).
 
 [![GitHub license](https://img.shields.io/github/license/gianthk/alrecon)](https://github.com/gianthk/alrecon/blob/master/LICENSE)
 
-Micro Finite Element (microFE) models can be derived from micro Computed Tomography (microCT) 3D images to non-destructively assess mechanical properties of biological or artificial specimens. <br />
-**ciclope** provides fully open-source pipelines from microCT data preprocessing to microFE model generation, solution and postprocessing. <br />
+<!-- Micro Finite Element (microFE) models can be derived from micro Computed Tomography (microCT) 3D images to non-destructively assess mechanical properties of biological or artificial specimens. <br />
+**ciclope** provides fully open-source pipelines from microCT data preprocessing to microFE model generation, solution and postprocessing. <br /> -->
 
 ![](docs/alrecon_home.gif)
 
 ## Installation
-Install `alrecon` using pip. The flag `[all]` will install optional dependencies required for integration with [`napari`](https://napari.org) and logging to google spreadsheets.
+<!-- Install `alrecon` using pip. The flag `[all]` will install optional dependencies required for integration with [`napari`](https://napari.org) and logging to google spreadsheets.
 ```commandline
 pip install alrecon[all]
-```
+``` -->
+
 1. Checkout this repository:
 ```commandline
 git clone https://github.com/gianthk/alrecon.git
@@ -20,20 +21,21 @@ git clone https://github.com/gianthk/alrecon.git
 2. Navigate to the repository and create a virtual environment with the dependencies required by the application:
 ```commandline
 cd alrecon
-conda create --file alrecon.yml
+conda env create --file alrecon.yml
 conda activate alrecon
 ```
-3. Create and activate a virtual environment for the application:
-```commandline
-conda create -n alrecon
-conda activate alrecon
-```
-3. Install dependencies with:
+[!NOTE]
+If you already have a virtual environment, you can install manually the requirements listed in file [alrecon.yml](alrecon.yml).
 
-3. Navigate to the repository main directory and build the `alrecon` app:
+3. Build the `alrecon` app:
 ```commandline
 cd alrecon
 pip install -e .
+```
+
+4. Run the `alrecon` web application on localhost:
+```commandline
+solara run alrecon.pages
 ```
 
 ### How to contribute
