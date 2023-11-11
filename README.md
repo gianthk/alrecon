@@ -35,7 +35,7 @@ pip install -e .
 
 4. Run the `alrecon` web application on localhost:
 ```commandline
-solara run alrecon.pages
+solara run alrecon.pages --host localhost
 ```
 
 ### How to contribute
