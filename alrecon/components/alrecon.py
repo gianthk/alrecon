@@ -170,7 +170,7 @@ class alrecon:
 
 	def init_settings(self, filename):
 		with open(filename, "r") as file_object:
-			self.settings_file = solara.reactive(os.path.basename(filename))
+			self.settings_file = solara.reactive(path.basename(filename))
 			self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
 			self.check_settings_paths()
 
@@ -182,7 +182,7 @@ class alrecon:
 
 	def load_app_settings(self, filename):
 		with open(filename, "r") as file_object:
-			self.settings_file.set(os.path.basename(filename))
+			self.settings_file.set(path.basename(filename))
 			self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
 
 			# some app settings
