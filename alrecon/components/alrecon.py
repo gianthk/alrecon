@@ -13,7 +13,7 @@ __license__ = "MIT"
 __maintainer__ = 'Gianluca Iori'
 __email__ = "gianthk.iori@gmail.com"
 
-import os.path
+# import os.path
 
 import yaml
 from os import getlogin, path
@@ -496,8 +496,8 @@ class alrecon:
 		logger.info('Writing Slurm reconstruction job.')
 
 		# initialize slurm job instance with
-		job = slurm.slurmjob(job_name='',
-							 job_dir='',
+		job = slurm.slurmjob(job_name=self.dataset,
+							 job_dir=path.dirname(self.recon_dir.value),
 							 node=worker,
 							 ntasks=48,
 							 cpus_per_task=2,
