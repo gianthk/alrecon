@@ -497,7 +497,7 @@ class alrecon:
 
 		# initialize slurm job instance with
 		job = slurm.slurmjob(job_name=self.dataset,
-							 job_dir=path.dirname(self.recon_dir.value),
+							 job_dir=str(path.dirname(self.recon_dir.value)),
 							 node=worker,
 							 ntasks=48,
 							 cpus_per_task=2,
