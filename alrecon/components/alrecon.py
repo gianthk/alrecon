@@ -32,7 +32,7 @@ logger = logging.getLogger("alrecon")
 logger_dxchange = logging.getLogger("dxchange")
 logger_dxchange.setLevel(logging.CRITICAL)
 
-from alrecon.components import gspreadlog
+from alrecon.components import gspreadlog, slurm
 from alrecon.components.recon_utils import touint
 
 from pathlib import Path
@@ -462,22 +462,27 @@ class alrecon:
 		self.retrieval_status.set(False)
 		self.phase_retrieved.set(True)
 
-	def cluster_run(self):
+	def cluster_run(self, worker='rum'):
 		"""Logs reconstruction info to master google spreadsheet using gspread. Generates and submit a slurm reconstruction job file to HPC cluster.
 		"""
+
+		# apply sino_range setting
 		if not self.recon_sino_range.value:
 			self.sino_range_enable.set(False)
 
+		# apply proj_range setting
 		if not self.recon_proj_range.value:
 			self.proj_range_enable.set(False)
 
+		# attempt gspread logger initialization if gspread_logging is selected but the logger is not initialized yet
 		if self.gspread_logging.value:
 			if self.glog is None:
 				self.attempt_glog_init()
 
+		# log reconstruction information to master Google spreadsheet
 		if self.gspread_logging.value:
 			logger.info('Logging recon to master...')
-			self.worker = 'rum'
+			self.worker = worker
 			if not self.proj_range_enable.value:
 				self.proj_range.set([0, self.n_proj.value])
 
@@ -487,7 +492,24 @@ class alrecon:
 			self.update_settings_dictionary()
 			self.glog.log_to_gspread(self.settings)
 
-		logger.info('Write Slurm reconstruction job. -Not implemented yet-')
+		# write Slurm reconstruction job
+		logger.info('Writing Slurm reconstruction job.')
+
+		# initialize slurm job instance with
+		job = slurm.slurmjob(job_name='',
+							 job_dir='',
+							 node=worker,
+							 ntasks=48,
+							 cpus_per_task=2,
+							 max_time_min=30,
+							 partition='cpu',
+							 mem_per_cpu=2,
+							 max_threads=96,
+							 recon_script='BEATS_recon.py')
+
+		job.write_header()
+		job.set_recon_command(alrecon_state=self)
+		job.write_recon_command()
 
 		logger.info('Launch recon on SESAME rum cluster. -Not implemented yet-')
 

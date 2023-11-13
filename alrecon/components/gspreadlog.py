@@ -1,3 +1,9 @@
+"""
+Class for integration of online logging to Google spreadsheet using gspread.
+For more information, visit the project homepage:
+	https://github.com/gianthk/alrecon
+"""
+
 import logging
 
 try:
