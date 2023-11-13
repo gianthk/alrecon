@@ -194,11 +194,17 @@ def DefaultSettings():
 
 @solara.component
 def HPCSettings():
-    with solara.Card("HPC integration settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]): # Default settings
-        solara.Switch(label="Log to master google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
-        solara.Switch(label="Load sinogram range", value=ar.recon_sino_range, style={"height": "20px"})
-        solara.Switch(label="Load projections range", value=ar.recon_proj_range, style={"height": "20px"})
-        solara.Switch(label="Write midplanes images", value=ar.write_midplanes, style={"height": "40px"})
+    with solara.Card("HPC integration settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+        with solara.Row():
+            with solara.Column(gap="0px", style={"margin": "0px"}):
+                solara.Switch(label="Log to Google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
+                solara.Switch(label="Load sinogram range", value=ar.recon_sino_range, style={"height": "20px"})
+                solara.Switch(label="Load projections range", value=ar.recon_proj_range, style={"height": "20px"})
+                solara.Switch(label="Write midplanes images", value=ar.write_midplanes, style={"height": "40px"})
+            with solara.Column(gap="0px", style={"margin": "0px"}):
+                solara.InputText("Node", value=ar.node, continuous_update=False)
+                solara.InputText("Reconstruction script", value=ar.recon_script, continuous_update=False)
+
 
 @solara.component
 def ModifySettings():

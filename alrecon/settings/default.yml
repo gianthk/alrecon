@@ -56,3 +56,12 @@ write_midplanes: True
 # Plot settings
 plotreconhist: False
 hist_speed: 'fast'
+# Slurm settings
+node: 'rum'
+partition: 'cpu'
+ntasks: 48
+cpus_per_task: 2
+max_time_min: 30
+mem_per_cpu: 2
+max_threads: 96
+recon_script: 'BEATS_recon.py'
