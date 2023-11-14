@@ -13,42 +13,35 @@ def mkdir_p(dir):
         os.mkdir(dir)
 
 class slurmjob:
-    def __init__(self, job_name='', job_dir='', node='rum', ntasks=48, cpus_per_task=2, max_time_min=30, partition='cpu', mem_per_cpu=2, max_threads=96, recon_script='BEATS_recon.py'):
+    def __init__(self, job_name='', job_dir=''):
         self.job_name = job_name
         self.job_dir = job_dir
         self.job_file = os.path.join(self.job_dir, "%s.job" % self.job_name)
-        self.node = node
-        self.ntasks = ntasks
-        self.cpus_per_task = cpus_per_task
-        self.max_time_min = max_time_min
-        self.partition = partition
-        self.mem_per_cpu = mem_per_cpu
-        self.max_threads = max_threads
-        self.recon_script = recon_script
+        self.recon_command = ''
 
-    def write_header(self):
+    def write_header(self, alrecon_state):
         '''Add here write_header calls for other compute nodes.'''
-        if self.node == 'rum':
-            self.write_header_rum()
+        if alrecon_state.node.value == 'rum':
+            self.write_header_rum(alrecon_state)
         else:
-            logging.error('Compute node {0} not known.'.format(self.node))
+            logging.error('Compute node {0} not known.'.format(alrecon_state.node))
 
-    def write_header_rum(self):
+    def write_header_rum(self, alrecon_state):
         '''
         Writes header to slurm job file for the SESAME BEATS beamline.
         SBATCH settings and module load call are specific to the HPC cluster rum.sesame.org.jo.
-        To integrate alrecon with a different cluster, start by creating a copy of this method.
+        If required for integration with a different cluster, for example if you different module load statements, you should start by creating a copy of this method.
         '''
         with open(self.job_file, "w") as fh:
             fh.writelines("#!/bin/bash\n")
             fh.writelines("#SBATCH --job-name={0}%j\n".format(self.job_name))
             fh.writelines("#SBATCH --output=.out{0}%j.out\n".format(self.job_name))
             fh.writelines("#SBATCH --error=.out/{0}%j.err\n".format(self.job_name))
-            fh.writelines("#SBATCH --ntasks={0}\n".format(self.ntasks))
-            fh.writelines("#SBATCH --cpus-per-task={0}\n".format(self.cpus_per_task))
-            fh.writelines("#SBATCH --time=00:{0}:00\n".format(self.max_time_min))
-            fh.writelines("#SBATCH --partition={0}\n".format(self.partition))
-            fh.writelines("#SBATCH --mem-per-cpu={0}\n\n".format(self.mem_per_cpu))
+            fh.writelines("#SBATCH --ntasks={0}\n".format(alrecon_state.ntasks))
+            fh.writelines("#SBATCH --cpus-per-task={0}\n".format(alrecon_state.cpus_per_task))
+            fh.writelines("#SBATCH --time={0}\n".format(alrecon_state.max_time_min))
+            fh.writelines("#SBATCH --partition={0}\n".format(alrecon_state.partition))
+            fh.writelines("#SBATCH --mem-per-cpu={0}\n\n".format(alrecon_state.mem_per_cpu))
             # fh.writelines("#SBATCH --qos=normal\n")
             # fh.writelines("#SBATCH --mail-type=ALL\n")
             # fh.writelines("#SBATCH --mail-user=$USER@sesame.org.jo\n")
@@ -56,9 +49,9 @@ class slurmjob:
             fh.writelines("# Modules section:\n")
             fh.writelines("ml load anaconda/tomopy\n\n")
             fh.writelines("# Variables section:\n")
-            fh.writelines("export NUMEXPR_MAX_THREADS={0}\n\n".format(self.max_threads))
+            fh.writelines("export NUMEXPR_MAX_THREADS={0}\n\n".format(alrecon_state.max_threads))
 
-    def write_recon_command(self):
+    def write_recon_command(self, alrecon_state):
         with open(self.job_file, "a") as fh:
             fh.writelines("{0}\n\n".format(self.recon_command))
 
@@ -68,10 +61,10 @@ class slurmjob:
             You can add set_recon_command calls tailored to different scripts.
         '''
 
-        if self.recon_script == 'BEATS_recon.py':
+        if alrecon_state.recon_script.value == 'BEATS_recon.py':
             self.set_recon_command_beats(alrecon_state)
         else:
-            logging.error('Script {0} not known.'.format(self.recon_script))
+            logging.error('Script {0} not known.'.format(alrecon_state.recon_script))
 
     def set_recon_command_beats(self, alrecon_state):
         '''Assemble reconstruction python command for reconstruction call on rum.sesame.org.jo using the python script BEATS_recon.py.
@@ -81,7 +74,7 @@ class slurmjob:
                 Alrecon application state. Contains the reconstruction settings as solara reactive state variables.
             '''
 
-        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore {5} --algorithm {6}'.format(self.recon_script, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.ncore.value, alrecon_state.algorithm.value))
+        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore {5} --algorithm {6}'.format(alrecon_state.recon_script, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.ncore.value, alrecon_state.algorithm.value))
 
         # Add projections range argument
         if alrecon_state.recon_proj_range.value:

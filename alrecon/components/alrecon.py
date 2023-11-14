@@ -30,6 +30,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("alrecon")
 logger_dxchange = logging.getLogger("dxchange")
+logger_slurm = logging.getLogger("slurm")
 logger_dxchange.setLevel(logging.CRITICAL)
 
 from alrecon.components import gspreadlog, slurm
@@ -65,6 +66,7 @@ class alrecon:
 		self.algorithms = ["gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra"]
 		self.averagings = ['mean', 'median']
 		self.stripe_removal_methods = ['remove_dead_stripe', 'remove_large_stripe', 'remove_stripe_based_sorting', 'remove_all_stripe']
+		self.nodes = ['rum']
 		self.title = generate_title()
 		self.init_settings(settings_file())
 		self.saved_info = False
@@ -496,20 +498,12 @@ class alrecon:
 		logger.info('Writing Slurm reconstruction job.')
 
 		# initialize slurm job instance with
-		job = slurm.slurmjob(job_name=self.dataset,
-							 job_dir=str(path.dirname(self.recon_dir.value)),
-							 node=worker,
-							 ntasks=48,
-							 cpus_per_task=2,
-							 max_time_min=30,
-							 partition='cpu',
-							 mem_per_cpu=2,
-							 max_threads=96,
-							 recon_script='BEATS_recon.py')
+		job = slurm.slurmjob(job_name=self.dataset.value,
+							 job_dir=str(path.dirname(self.recon_dir.value)))
 
-		job.write_header()
+		job.write_header(alrecon_state=self)
 		job.set_recon_command(alrecon_state=self)
-		job.write_recon_command()
+		job.write_recon_command(alrecon_state=self)
 
 		logger.info('Launch recon on SESAME rum cluster. -Not implemented yet-')
 

@@ -14,6 +14,12 @@ hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
 dim_values = [1, 2]
+partitions = ["cpu", "gpu"]
+ntasks_vals = [2, 4, 8, 12, 24, 48, 96]
+cpus_per_task_vals = [1, 2, 4, 8, 12, 24, 48, 96]
+mem_per_cpu_vals = [2, 4, 8, 16, 32, 64, 128, 256]
+max_threads_vals = [2, 4, 8, 12, 24, 48, 96]
+max_time_min_vals = [10, 20, 30, 60, 120, 180, 360]
 
 @solara.component
 def CORdisplay():
@@ -194,17 +200,23 @@ def DefaultSettings():
 
 @solara.component
 def HPCSettings():
-    with solara.Card("HPC integration settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+    with solara.Card("HPC integration settings", subtitle="Ask before applying changes", style={"max-width": "800px"}, margin=0, classes=["my-2"]):
         with solara.Row():
             with solara.Column(gap="0px", style={"margin": "0px"}):
                 solara.Switch(label="Log to Google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
                 solara.Switch(label="Load sinogram range", value=ar.recon_sino_range, style={"height": "20px"})
                 solara.Switch(label="Load projections range", value=ar.recon_proj_range, style={"height": "20px"})
                 solara.Switch(label="Write midplanes images", value=ar.write_midplanes, style={"height": "40px"})
-            with solara.Column(gap="0px", style={"margin": "0px"}):
-                solara.InputText("Node", value=ar.node, continuous_update=False)
                 solara.InputText("Reconstruction script", value=ar.recon_script, continuous_update=False)
+                solara.Select("Node", value=ar.node, values=ar.nodes)
+                solara.Select("Partition", value=ar.partition, values=partitions)
 
+            with solara.Column(gap="0px", style={"margin": "0px"}):
+                solara.Select("Number of tasks", value=ar.ntasks, values=ntasks_vals)
+                solara.Select("CPUs per task", value=ar.cpus_per_task, values=cpus_per_task_vals)
+                solara.Select("Memory per CPU", value=ar.mem_per_cpu, values=mem_per_cpu_vals)
+                solara.Select("Max number of threads", value=ar.max_threads, values=max_threads_vals)
+                solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
 
 @solara.component
 def ModifySettings():
