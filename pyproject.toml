@@ -25,23 +25,17 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering",
     "Topic :: Utilities",
 ]
 requires-python = ">=3.8"
 dynamic = ["version", "description"]
 dependencies = [
+    "tomopy",
     "pathlib",
-#    "logging",
-#    "random",
-#    "time",
-#    "math",
-    "numpy",
     "solara",
     "plotly",
     "dxchange",
-    "tomopy",
     "pyyaml",
     "numpy",
     "tifffile",
@@ -50,6 +44,8 @@ dependencies = [
 
 [project.optional-dependencies]
 all = [
+    "pandas",
+    "astra-toolbox::astra-toolbox",
     "gspread",
     "gspread_dataframe",
     "oauth2client",

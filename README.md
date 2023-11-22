@@ -21,15 +21,17 @@ git clone https://github.com/gianthk/alrecon.git
 2. Navigate to the repository and create a virtual environment with all necessary dependencies:
 ```commandline
 cd alrecon
-conda env create --file alrecon.yml
-conda activate alrecon
+conda env create --file envs/alrecon-base.yml
+conda activate alrecon-base
 ```
 > [!NOTE]
-> If you already have a destination virtual environment for alrecon, you can install manually the requirements listed in file [alrecon.yml](alrecon.yml).
+> If you already have a destination virtual environment for alrecon, you can install manually the requirements listed in file [alrecon.yml](envs/alrecon-base.yml).
+
+> [!NOTE]
+> To use TomoPy with CUDA features, install TomoPy from conda following [these instructions](https://tomopy.readthedocs.io/en/stable/install.html).
 
 3. Build the `alrecon` app:
 ```commandline
-cd alrecon
 pip install -e .
 ```
 
@@ -64,10 +66,17 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 ## Integration with Google Sheets
 - `Alrecon` allows you to keep a consistent log of all reconstruction jobs on an online master Google spreadsheet.
 - The integration uses [gspread](https://docs.gspread.org/en/v5.12.0/), a Python API for Google Sheets.
-- You will need to setup your Google account, enable Google Sheets API, and create a Secret Key for accessing your online master. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets.
+- You will need to setup your Google Cloud account, enable [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts), and create a Secret Key with read/write permission to your online master Google sheet. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets API.
 
 ## Use with [napari](https://napari.org/stable/)
-napari is a pure Python powerfull viewer for multi-dimensional images. Until now, alrecon supports napari only when [running the app through Jupyter](#run-al-recon-within-jupyter).
+[napari](https://napari.org/stable/) is a pure Python powerfull viewer for multi-dimensional images. Until now, alrecon supports napari only when [running the app through Jupyter](#run-al-recon-within-jupyter).
+
+## Setup [ImageJ](https://imagej.net/software/fiji/) launcher
+To launch [ImageJ](https://imagej.net/software/fiji/) from the alrecon web app follow these steps:
+1. Modify the path to your ImageJ executable in the alrecon general settings
+![alrecon imagej executable path setting](docs/pictures/alrecon_imagej.png)
+
+2. Copy the [FolderOpener_virtual.ijm](/imagej_macros/FolderOpener_virtual.ijm) ImageJ macro contained in `/alrecon/imagej_macros/` to the plugin folder of your ImageJ installation. On Linux this is something like `/opt/Fiji.app/macros/`.
 
 ## Acknowledgements
 This work was performed within the [BEATS](https://beats-sesame.eu/) project and has received funding from the EU’s H2020 framework programme for research and innovation under grant agreement n° [822535](https://cordis.europa.eu/project/id/822535).

@@ -1,0 +1,19 @@
+name: alrecon
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.8
+  - tomopy
+  - dxchange
+  - pip
+  - pip:
+      - pandas
+      - tifffile
+      - pypng
+      - plotly
+      - matplotlib
+      - gspread
+      - gspread-dataframe
+      - oauth2client
+      - solara
+      - napari
