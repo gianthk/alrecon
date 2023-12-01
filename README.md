@@ -1,4 +1,4 @@
-# Al-recon
+# Al-recon (الريقُن)
 Pure Python Computed Tomography reconstruction web application. Built with [Solara](https://solara.dev/).
 
 [![GitHub license](https://img.shields.io/github/license/gianthk/alrecon)](https://github.com/gianthk/alrecon/blob/master/LICENSE)
