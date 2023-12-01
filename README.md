@@ -66,6 +66,7 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 ## Integration with Google Sheets
 - `Alrecon` allows you to keep a consistent log of all reconstruction jobs on an online master Google spreadsheet.
 - The integration uses [gspread](https://docs.gspread.org/en/v5.12.0/), a Python API for Google Sheets.
+- Follow these instructions to get 
 - You will need to setup your Google Cloud account, enable [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts), and create a Secret Key with read/write permission to your online master Google sheet. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets API.
 
 ## Use with [napari](https://napari.org/stable/)

@@ -300,9 +300,10 @@ class alrecon:
 
 		if self.phase_object.value:
 			if self.phase_retrieved.value:
-				return self.projs_phase
+				logger.info("Applied -log transform.")
+				return tomopy.minus_log(self.projs_phase, ncore=self.ncore.value)
 			else:
-				logger.error("Phase object was selected but phase information is not retrieved. I will reconstruct an absorption object.")
+				logger.error("Phase object was selected but phase shift was not retrieved. I will reconstruct an absorption object.")
 				logger.info("Applied -log transform.")
 				return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
 		else:
