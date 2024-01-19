@@ -83,4 +83,7 @@ To launch [ImageJ](https://imagej.net/software/fiji/) from the alrecon web app f
 2. Copy the [FolderOpener_virtual.ijm](/imagej_macros/FolderOpener_virtual.ijm) ImageJ macro contained in `/alrecon/imagej_macros/` to the plugin folder of your ImageJ installation. On Linux this is something like `/opt/Fiji.app/macros/`.
 
 ## Acknowledgements
-This work was performed within the [BEATS](https://beats-sesame.eu/) project and has received funding from the EU’s H2020 framework programme for research and innovation under grant agreement n° [822535](https://cordis.europa.eu/project/id/822535).
+
+This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No [[822535]](https://cordis.europa.eu/project/id/822535)(Beamline for Tomography at SESAME [BEATS](https://beats-sesame.eu/)). 
+
+This work was performed within the  project and has received funding from the EU’s H2020 framework programme for research and innovation under grant agreement n° [822535](https://cordis.europa.eu/project/id/822535).
