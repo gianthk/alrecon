@@ -221,6 +221,7 @@ def HPCSettings():
 @solara.component
 def ModifySettings():
 
+    #print(solara.use_state(Path("./")))
     settings_directory, set_directory = solara.use_state(Path("./alrecon/settings").expanduser())
 
     def load_settings(path):

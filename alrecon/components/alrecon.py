@@ -17,6 +17,7 @@ __email__ = "gianthk.iori@gmail.com"
 
 import yaml
 from os import getlogin, path
+import os
 from random import randint
 from time import time
 import numpy as np
@@ -37,6 +38,8 @@ from alrecon.components import gspreadlog, slurm
 from alrecon.components.recon_utils import touint
 
 from pathlib import Path
+
+inhouse = False
 
 def get_project_root() -> Path:
     return str(Path(__file__).parent.parent)
@@ -144,10 +147,54 @@ class alrecon:
 		if not (path.isdir(dir) | path.isdir(dir2)):
 			var.set('/')
 
-	def set_output_dirs(self):
+
+	def __set_output_dirs(self):
 		if self.auto_complete.value:
 			self.recon_dir.set(self.experiment_dir.value+'scratch/'+self.experiment_name.value+'/'+self.dataset.value+'/recon')
 			self.cor_dir.set(self.experiment_dir.value+'scratch/'+self.experiment_name.value+'/'+self.dataset.value+'/cor')
+			self.check_path(self.recon_dir, True)
+			self.check_path(self.cor_dir, True)
+
+	def _set_output_dirs(self):
+		if self.auto_complete.value:
+			self.recon_dir.set(path.join(f'{self.experiment_dir.value}_recon', self.experiment_name.value, self.dataset.value, 'recon'))
+			self.cor_dir.set(path.join(f'{self.experiment_dir.value}_recon', self.experiment_name.value, self.dataset.value, 'cor'))
+			self.check_path(self.recon_dir, True)
+			self.check_path(self.cor_dir, True)
+
+	def define_recon_dir_BEATS(self):
+		### first 4 elements are defining the root
+		path_ = os.path.abspath(self.experiment_dir.value)
+		elements_path = path_.split(os.sep)[:5]
+		#if elements_path[0] == '':
+		elements_path[0] = '/'
+		dir_recon_root = os.path.join(*elements_path)
+		dir_recon_root = f'{dir_recon_root}_recon'
+		return dir_recon_root
+
+	def set_output_dirs(self):
+		if self.auto_complete.value:
+			if inhouse:
+				# CHECK THESE PATHS
+				self.recon_dir.set(path.join(self.experiment_dir.value, 'scratch', self.experiment_name.value, self.dataset.value, 'recon'))
+				self.cor_dir.set(path.join(self.experiment_dir.value, 'scratch', self.experiment_name.value, self.dataset.value, 'cor'))
+			else:
+				#out_path = path.join(f'{self.experiment_dir.value}_recon', self.experiment_name.value, self.dataset.value,  'recon')
+				self.dir_recon_root = self.define_recon_dir_BEATS()
+				#print('HERE:    ', self.dir_recon_root)
+				self.recon_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value,  'recon'))
+				self.cor_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value,  'cor'))
+
+			'''
+			print('testtesttest   ', self.recon_dir.value)
+			print(solara.use_state(self.recon_dir.value))
+			print(solara.use_state(self.recon_dir.value))
+			print(solara.use_state(self.recon_dir.value))
+			print(solara.use_state(self.cor_dir.value))
+			print(solara.use_state())
+			print(solara.use_state())
+			print(self.cor_dir.value)
+			'''
 			self.check_path(self.recon_dir, True)
 			self.check_path(self.cor_dir, True)
 
