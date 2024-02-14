@@ -162,11 +162,11 @@ class alrecon:
 			self.check_path(self.recon_dir, True)
 			self.check_path(self.cor_dir, True)
 
-	def define_recon_dir_BEATS(self):
-		### first 4 elements are defining the root
+	def define_recon_dir_BEATS(self, number_heading_directories=5):
+		### first 4 elements are defining the root at BEATS, + '/' what gets stripped to ''
+		### but since we know the path for BEATS, we could also take a hardcoded thing
 		path_ = os.path.abspath(self.experiment_dir.value)
-		elements_path = path_.split(os.sep)[:5]
-		#if elements_path[0] == '':
+		elements_path = path_.split(os.sep)[:number_heading_directories]
 		elements_path[0] = '/'
 		dir_recon_root = os.path.join(*elements_path)
 		dir_recon_root = f'{dir_recon_root}_recon'
