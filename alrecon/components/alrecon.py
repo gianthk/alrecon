@@ -147,7 +147,6 @@ class alrecon:
 		if not (path.isdir(dir) | path.isdir(dir2)):
 			var.set('/')
 
-
 	def __set_output_dirs(self):
 		if self.auto_complete.value:
 			self.recon_dir.set(self.experiment_dir.value+'scratch/'+self.experiment_name.value+'/'+self.dataset.value+'/recon')
@@ -185,16 +184,6 @@ class alrecon:
 				self.recon_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value,  'recon'))
 				self.cor_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value,  'cor'))
 
-			'''
-			print('testtesttest   ', self.recon_dir.value)
-			print(solara.use_state(self.recon_dir.value))
-			print(solara.use_state(self.recon_dir.value))
-			print(solara.use_state(self.recon_dir.value))
-			print(solara.use_state(self.cor_dir.value))
-			print(solara.use_state())
-			print(solara.use_state())
-			print(self.cor_dir.value)
-			'''
 			self.check_path(self.recon_dir, True)
 			self.check_path(self.cor_dir, True)
 
@@ -480,6 +469,8 @@ class alrecon:
 				                                 fname=fileout, axis=0, digit=4, start=0, overwrite=True)
 			else:
 				dxchange.writer.write_tiff_stack(self.recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
+
+		os.chmod(path.dirname(fileout), 0o0777)
 		self.recon_status.set(False)
 		logger.info("Dataset written to disk.")
 
