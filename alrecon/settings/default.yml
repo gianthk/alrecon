@@ -57,11 +57,15 @@ write_midplanes: True
 plotreconhist: False
 hist_speed: 'fast'
 # Slurm settings
+remote_user: 'beatsbs'
+remote_host: '0.0.0.0'
 node: 'rum'
 partition: 'cpu'
-ntasks: 48
-cpus_per_task: 2
-max_time_min: 30
+nodelist: 'gpunode1'
+gres: 'gpu:1'
+ntasks: 11
+cpus_per_task: 8
+max_time_min: 40
 mem_per_cpu: 2
-max_threads: 96
+max_threads: 10
 recon_script: 'BEATS_recon.py'

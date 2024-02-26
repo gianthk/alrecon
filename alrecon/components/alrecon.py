@@ -18,6 +18,7 @@ __email__ = "gianthk.iori@gmail.com"
 import yaml
 from os import getlogin, path
 import os
+import subprocess
 from random import randint
 from time import time
 import numpy as np
@@ -534,7 +535,7 @@ class alrecon:
 			self.glog.log_to_gspread(self.settings)
 
 		# write Slurm reconstruction job
-		logger.info('Writing Slurm reconstruction job.')
+		# logger.info('Writing Slurm reconstruction job.')
 
 		# initialize slurm job instance with
 		job = slurm.slurmjob(job_name=self.dataset.value,
@@ -543,7 +544,53 @@ class alrecon:
 		job.write_header(alrecon_state=self)
 		job.set_recon_command(alrecon_state=self)
 		job.write_recon_command(alrecon_state=self)
+		logger.info("Written Slurm reconstruction job {0} to {1}\n".format(job.job_file, path.dirname(self.recon_dir.value)))
 
 		logger.info('Launch recon on SESAME rum cluster. -Not implemented yet-')
+
+		# SSH command to execute the script remotely
+		ssh_command = ['ssh', '{0}@{1}'.format(self.remote_user.value, self.remote_host.value)]
+		#ssh_command = ['ssh', '-tt', '{0}@{1}'.format(self.remote_user.value, self.remote_host.value)]
+		# bash_command = ['bash', '{0}'.format(job.job_file)]
+		bash_command = 'sbatch {0}'.format(job.job_file)
+		# full_command = ssh_command + bash_comamnd
+
+		# Execute the script remotely
+		# https://stackoverflow.com/questions/19900754/python-subprocess-run-multiple-shell-commands-over-ssh
+		#
+		logger.info('test')
+		logger.info('ssh_command   ', *ssh_command)
+		# logger.info(bash_comamnd)
+		# logger.info(ssh_command + bash_comamnd)
+		# logger.info('full_command', full_command)
+
+		logger.info('should start ssh')
+
+		sshProcess = subprocess.Popen(ssh_command,
+									  stdin=subprocess.PIPE,
+									  stdout=subprocess.PIPE,
+									  universal_newlines=True,
+									  bufsize=0)
+		sshProcess.stdin.write("ls .\n")
+		sshProcess.stdin.write("pwd\n")
+		sshProcess.stdin.write(f'{bash_command}\n')
+		sshProcess.stdin.write("echo END\n")
+		sshProcess.stdin.write("uptime\n")
+		sshProcess.stdin.write("logout\n")
+		sshProcess.stdin.close()
+
+		#for line in sshProcess.stdout:
+		#	if line == "END\n":
+		#		break
+		#	logger.info("also logging something    ", line)
+
+		# to catch the lines up to logout
+		# for line in sshProcess.stdout:
+		#	logger.info("logging ssh   ", str(line))
+
+		logger.info("finished ssh")
+
+	# logger.info('Slurm command: {0}'.format(full_command))
+		# subprocess.run(full_command)
 
 	# del variables

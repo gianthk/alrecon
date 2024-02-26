@@ -34,14 +34,16 @@ class slurmjob:
         '''
         with open(self.job_file, "w") as fh:
             fh.writelines("#!/bin/bash\n")
-            fh.writelines("#SBATCH --job-name={0}%j\n".format(self.job_name))
-            fh.writelines("#SBATCH --output=.out{0}%j.out\n".format(self.job_name))
-            fh.writelines("#SBATCH --error=.out/{0}%j.err\n".format(self.job_name))
+            fh.writelines("#SBATCH --job-name={0}_%j\n".format(self.job_name))
+            fh.writelines("#SBATCH --output={0}_%j.out\n".format(self.job_name))
+            fh.writelines("#SBATCH --error={0}_%j.err\n".format(self.job_name))
             fh.writelines("#SBATCH --ntasks={0}\n".format(alrecon_state.ntasks))
             fh.writelines("#SBATCH --cpus-per-task={0}\n".format(alrecon_state.cpus_per_task))
             fh.writelines("#SBATCH --time={0}\n".format(alrecon_state.max_time_min))
-            fh.writelines("#SBATCH --partition={0}\n".format(alrecon_state.partition))
-            fh.writelines("#SBATCH --mem-per-cpu={0}\n\n".format(alrecon_state.mem_per_cpu))
+            fh.writelines("#SBATCH --partition={0}\n".format(alrecon_state.partition.value))
+            fh.writelines("#SBATCH --nodelist={0}\n".format(alrecon_state.nodelist.value))
+            fh.writelines("#SBATCH --gres={0}\n".format(alrecon_state.gres.value))
+            fh.writelines("#SBATCH --mem-per-cpu={0}\n\n".format(alrecon_state.mem_per_cpu.value))
             # fh.writelines("#SBATCH --qos=normal\n")
             # fh.writelines("#SBATCH --mail-type=ALL\n")
             # fh.writelines("#SBATCH --mail-user=$USER@sesame.org.jo\n")
@@ -61,7 +63,7 @@ class slurmjob:
             You can add set_recon_command calls tailored to different scripts.
         '''
 
-        if alrecon_state.recon_script.value == 'BEATS_recon.py':
+        if 'BEATS_recon.py' in alrecon_state.recon_script.value:
             self.set_recon_command_beats(alrecon_state)
         else:
             logging.error('Script {0} not known.'.format(alrecon_state.recon_script))
@@ -74,7 +76,7 @@ class slurmjob:
                 Alrecon application state. Contains the reconstruction settings as solara reactive state variables.
             '''
 
-        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore {5} --algorithm {6}'.format(alrecon_state.recon_script, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.ncore.value, alrecon_state.algorithm.value))
+        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore {5} --algorithm {6}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.ncore.value, alrecon_state.algorithm.value))
 
         # Add projections range argument
         if alrecon_state.recon_proj_range.value:
@@ -86,7 +88,7 @@ class slurmjob:
 
         # Add phase retrieval arguments
         if alrecon_state.phase_object.value:
-            py_command = (py_command + (' --phase --alpha {0} --pixelsize {1} --energy {2} --sdd {3}'.format(alrecon_state.alpha.value, alrecon_state.pixelsize.value, alrecon_state.energy.value, alrecon_state.sdd.value)))
+            py_command = (py_command + (' --phase --alpha {0} --pixelsize {1} --energy {2} --sdd {3}'.format(alrecon_state.alpha.value, 1e-3*alrecon_state.pixelsize.value, alrecon_state.energy.value, alrecon_state.sdd.value)))
 
             if alrecon_state.pad.value:
                 py_command = py_command + ' --phase_pad'
@@ -109,7 +111,7 @@ class slurmjob:
 
         # Add circular mask arguments
         if alrecon_state.circmask.value:
-            py_command = py_command + (' --cic_mask --circ_mask_ratio {0}'.format(alrecon_state.circmask_ratio.value))
+            py_command = py_command + (' --circ_mask --circ_mask_ratio {0}'.format(alrecon_state.circmask_ratio.value))
 
         # Add midplanes arguments
         if alrecon_state.write_midplanes.value:
