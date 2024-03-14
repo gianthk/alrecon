@@ -347,6 +347,10 @@ class alrecon:
 			logger.info("Applied -log transform.")
 			return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
 
+	def normalize_sinogram(self):
+		self.projs = tomopy.normalize(self.projs, self.flats, self.darks, ncore=self.ncore.value, averaging=self.averaging.value)
+		logger.info("Sinogram: normalized.")
+
 	def load_and_normalize(self, filename):
 		# free some space
 		del self.projs,self.flats,self.darks, self.projs_phase, self.projs_stripe, self.recon
@@ -379,14 +383,15 @@ class alrecon:
 		logger.info("Theta array size: {0}".format(*self.theta.shape[:]))
 
 		if self.normalize_on_load.value:
-			self.projs = tomopy.normalize(self.projs, self.flats, self.darks, ncore=self.ncore.value, averaging=self.averaging.value)
-			logger.info("Sinogram: normalized.")
+			self.normalize_sinogram()
 
 		self.load_status.set(False)
 		self.COR_slice_ind.set(int(np.mean(self.sino_range.value)))
 
 		if self.COR_auto.value:
 			self.guess_COR()
+
+
 
 	def guess_COR(self):
 		self.cor_status.set(True)
@@ -545,8 +550,7 @@ class alrecon:
 		job.set_recon_command(alrecon_state=self)
 		job.write_recon_command(alrecon_state=self)
 		logger.info("Written Slurm reconstruction job {0} to {1}\n".format(job.job_file, path.dirname(self.recon_dir.value)))
-
-		logger.info('Launch recon on SESAME rum cluster. -Not implemented yet-')
+		logger.info('Launching reconstruction job on rum cluster...')
 
 		# SSH command to execute the script remotely
 		ssh_command = ['ssh', '{0}@{1}'.format(self.remote_user.value, self.remote_host.value)]
@@ -554,43 +558,22 @@ class alrecon:
 		# bash_command = ['bash', '{0}'.format(job.job_file)]
 		bash_command = 'sbatch {0}'.format(job.job_file)
 		# full_command = ssh_command + bash_comamnd
-
 		# Execute the script remotely
 		# https://stackoverflow.com/questions/19900754/python-subprocess-run-multiple-shell-commands-over-ssh
-		#
-		logger.info('test')
-		logger.info('ssh_command   ', *ssh_command)
-		# logger.info(bash_comamnd)
-		# logger.info(ssh_command + bash_comamnd)
-		# logger.info('full_command', full_command)
+		logger.info('Launching ssh command: ', *ssh_command)
 
-		logger.info('should start ssh')
-
+		# logger.info('should start ssh')
 		sshProcess = subprocess.Popen(ssh_command,
 									  stdin=subprocess.PIPE,
 									  stdout=subprocess.PIPE,
 									  universal_newlines=True,
 									  bufsize=0)
-		sshProcess.stdin.write("ls .\n")
-		sshProcess.stdin.write("pwd\n")
+		# sshProcess.stdin.write("ls .\n")
+		# sshProcess.stdin.write("pwd\n")
 		sshProcess.stdin.write(f'{bash_command}\n')
-		sshProcess.stdin.write("echo END\n")
-		sshProcess.stdin.write("uptime\n")
+		# sshProcess.stdin.write("echo END\n")
+		# sshProcess.stdin.write("uptime\n")
 		sshProcess.stdin.write("logout\n")
 		sshProcess.stdin.close()
 
-		#for line in sshProcess.stdout:
-		#	if line == "END\n":
-		#		break
-		#	logger.info("also logging something    ", line)
-
-		# to catch the lines up to logout
-		# for line in sshProcess.stdout:
-		#	logger.info("logging ssh   ", str(line))
-
 		logger.info("finished ssh")
-
-	# logger.info('Slurm command: {0}'.format(full_command))
-		# subprocess.run(full_command)
-
-	# del variables

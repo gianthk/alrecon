@@ -46,7 +46,7 @@ def CORinspect():
             with solara.Row():
                 solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: ar.write_cor(),
                           disabled=not (ar.loaded_file.value))
-                solara.Button(label="inspect COR range images", icon_name="mdi-eye",
+                solara.Button(label="Inspect COR range images", icon_name="mdi-eye",
                           on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
