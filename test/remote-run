@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Remote server details
+remote_user="beatsbs"
+remote_host="10.1.32.20"
+remote_script_path="/PETRA/SED/BEATS/IH/scratch/Petra_charite/run_BEATS_recon.sh"
+
+# SSH command to execute the script remotely
+ssh_command="ssh ${remote_user}@${remote_host}"
+
+# Execute the script remotely
+${ssh_command} "bash ${remote_script_path}"
+
