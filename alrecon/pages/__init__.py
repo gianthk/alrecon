@@ -17,7 +17,6 @@ view = viewers.viewers()
 
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
 continuous_update = solara.reactive(True)
-hist_count = solara.reactive(0)
 
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
@@ -272,12 +271,9 @@ def ReconHistogram():
 
 @solara.component
 def ReconHistogramMatplotlib():
-    # count, set_count = solara.use_state(0)
-    counter = solara.use_reactive(0)
-
     def increment():
         # set_count(count.value + 1)
-        hist_count.set(hist_count.value + 1)
+        ar.hist_count.set(ar.hist_count.value + 1)
 
     with solara.Card("Reconstruction histogram", style={"margin": "0px", "height": "450px"}): # "width": "800px",
         with solara.Row(style={"margin": "20px", "height": "40px"}):
@@ -300,7 +296,7 @@ def ReconHistogramMatplotlib():
             ax.set_ylabel('Counts')
             ax.grid(True, which="both", color='gray', linewidth=0.2)
             fig.tight_layout()
-            solara.FigureMatplotlib(fig, dependencies=[hist_count.value, ar.Data_min.value, ar.Data_max.value, ar.hist_speed.value])
+            solara.FigureMatplotlib(fig, dependencies=[ar.hist_count.value, ar.Data_min.value, ar.Data_max.value, ar.hist_speed.value])
 
 @solara.component
 def StripeRemoval():

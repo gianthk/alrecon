@@ -107,6 +107,8 @@ class alrecon:
 		self.stripe_removed = solara.reactive(False)
 		self.recon_status = solara.reactive(False)
 		self.reconstructed = solara.reactive(False)
+		self.hist_count = solara.reactive(0)
+
 		self.retrieval_status = solara.reactive(False)
 		self.phase_retrieved = solara.reactive(False)
 
@@ -391,8 +393,6 @@ class alrecon:
 		if self.COR_auto.value:
 			self.guess_COR()
 
-
-
 	def guess_COR(self):
 		self.cor_status.set(True)
 		if self.COR_algorithm.value == "Vo":
@@ -444,6 +444,7 @@ class alrecon:
 		self.recon_status.set(False)
 		self.reconstructed.set(True)
 		self.recon_counter.set(self.recon_counter.value + 1)
+		self.hist_count.set(self.hist_count.value + 1)
 
 		if (self.Data_min.value == 0) & (self.Data_max.value == 0):
 			recon_subset = self.recon[0::10, 0::10, 0::10]
