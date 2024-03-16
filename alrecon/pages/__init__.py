@@ -1,8 +1,8 @@
 import solara
 from pathlib import Path
 import os
-import plotly.express as px
-import solara.express as spx
+# import plotly.express as px
+# import solara.express as spx
 import numpy as np
 import matplotlib
 # import matplotlib.pyplot as plt
