@@ -3,6 +3,13 @@ from pathlib import Path
 import os
 import plotly.express as px
 import solara.express as spx
+import numpy as np
+import matplotlib
+# import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+font = {'weight' : 'normal',
+        'size'   : 16}
+matplotlib.rc('font', **font)
 
 from alrecon.components import alrecon, viewers
 ar = alrecon.alrecon()
@@ -10,6 +17,7 @@ view = viewers.viewers()
 
 ImageJ_exe_stack = ar.imagej_launcher.value + ' -macro FolderOpener_virtual.ijm '
 continuous_update = solara.reactive(True)
+
 hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
@@ -262,6 +270,36 @@ def ReconHistogram():
                 spx.CrossFilteredFigurePlotly(fig)
 
 @solara.component
+def ReconHistogramMatplotlib():
+    count, set_count = solara.use_state(0)
+
+    def increment():
+        set_count(count + 1)
+
+    with solara.Card("Reconstruction histogram", style={"margin": "0px", "height": "450px"}): # "width": "800px",
+        with solara.Row(style={"margin": "20px", "height": "40px"}):
+            solara.Button(label="Plot histogram", icon_name="mdi-chart-histogram", on_click=increment)
+            solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string) # , disabled=not(ar.plotreconhist.value)
+        with solara.Column(style={"margin": "0px"}):
+            # if ar.plotreconhist.value:
+            step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
+            fig = Figure(figsize=(8,4.62))
+            ax = fig.subplots()
+            counts, bins = np.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), bins=128)
+            ax.stairs(counts, bins, fill=True, color='grey')
+            ax.vlines(ar.Data_min.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+            ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+            ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f'%(bins[0])))
+            ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f'%(bins[-1])))
+            ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
+            ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
+            ax.set_xlabel('Intensity')
+            ax.set_ylabel('Counts')
+            ax.grid(True, which="both", color='gray', linewidth=0.2)
+            fig.tight_layout()
+            solara.FigureMatplotlib(fig, dependencies=[count, ar.Data_min])
+
+@solara.component
 def StripeRemoval():
     with solara.Card("Remove stripe artifacts from sinogram", subtitle="See https://tomopy.readthedocs.io/en/latest/api/tomopy.prep.stripe.html#", elevation=2, margin=0, classes=["my-2"], style={"width": "600px"}):
         with solara.Column():
@@ -318,7 +356,8 @@ def Page(jupyter=False):
                                   disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
 
                 OutputControls()
-                ReconHistogram()
+                # ReconHistogram()
+                ReconHistogramMatplotlib()
 
             solara.Success(f"This al-recon instance reconstructed {ar.recon_counter.value} datasets.", text=True, dense=True, outlined=True, icon=True)
 
