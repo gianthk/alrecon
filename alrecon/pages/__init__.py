@@ -151,6 +151,12 @@ def DatasetInfo():
     # * Flat data size: {flats_shape.value[0]} x {flats_shape.value[1]} x {flats_shape.value[2]}
     # * Dark data size: {darks_shape.value[0]} x {darks_shape.value[1]} x {darks_shape.value[2]}
 
+def ReconInfo():
+    solara.Checkbox(label="Dataset loaded", value=ar.loaded_file, style="height: 20px", disabled=True)
+    solara.Checkbox(label="Normalized", value=ar.normalized, style="height: 20px", disabled=True)
+    solara.Checkbox(label="Phase retrieved", value=ar.phase_retrieved, style="height: 20px", disabled=True)
+    solara.Checkbox(label="Reconstructed", value=ar.reconstructed, style="height: 40px", disabled=True)
+
 @solara.component
 def PhaseRetrieval():
     with solara.Card("Phase retrieval", subtitle="Paganin method", elevation=2, margin=0, classes=["my-2"]):
@@ -358,7 +364,7 @@ def Page(jupyter=False):
     with solara.Sidebar():
         with solara.Card(margin=0, elevation=0):
             DatasetInfo()
-            # SetCOR()
+            ReconInfo()
             OutputSettings(disabled=False)
             NapariViewer()
             ImageJViewer()

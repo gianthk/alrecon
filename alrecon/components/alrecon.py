@@ -218,6 +218,11 @@ class alrecon:
 		self.dataset.set(path.splitext(path.basename(str(dataset_path)))[0])
 		self.set_output_dirs()
 
+		self.loaded_file.set(False)
+		self.normalized.set(False)
+		self.phase_retrieved.set(False)
+		self.reconstructed.set(False)
+
 	def init_settings(self, filename):
 		with open(filename, "r") as file_object:
 			self.settings_file = solara.reactive(path.basename(filename))
@@ -345,6 +350,8 @@ class alrecon:
 
 	def processed_sinogram(self):
 		# Return processed sinogram for reconstruction job
+		if self.normalized.value is False:
+			self.normalize_sinogram()
 
 		if self.phase_object.value:
 			if self.phase_retrieved.value:
@@ -524,6 +531,9 @@ class alrecon:
 		self.stripe_removed.set(True)
 
 	def retrieve_phase(self):
+		if self.normalized.value is False:
+			self.normalize_sinogram()
+
 		self.retrieval_status.set(True)
 		phase_start_time = time()
 		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value, nchunk=None)
