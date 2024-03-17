@@ -29,6 +29,10 @@ mem_per_cpu_vals = [2, 4, 8, 16, 32, 64, 128, 256]
 max_threads_vals = [2, 4, 8, 12, 24, 48, 96]
 max_time_min_vals = [10, 20, 30, 60, 120, 180, 360]
 
+def filter_h5_file(path):
+    _, ext = os.path.splitext(path)
+    return (ext == '.h5') | (ext == '')
+
 @solara.component
 def CORdisplay():
     with solara.Card("", margin=0, classes=["my-2"], style={"width": "200px"}):
@@ -86,12 +90,30 @@ def ImageJViewer():
 @solara.component
 def FileSelect():
     with solara.Card("Select HDF5 dataset file", margin=0, classes=["my-2"], style={"max-height": "500px"}): # style={"max-width": "800px"},
-        def filter_h5_file(path):
-            _, ext = os.path.splitext(path)
-            return (ext == '.h5') | (ext == '')
 
         h5dir, set_directory = solara.use_state(Path(ar.experiment_dir.value).expanduser())
         solara.FileBrowser(can_select=False, directory=h5dir, on_directory_change=set_directory, on_file_open=ar.set_file_and_proj, directory_first=True, filter=filter_h5_file)
+
+def FlatsSelect():
+    with solara.Row():
+        solara.Switch(label="Separate flat fields", value=ar.separate_flats, style={"height": "20px", "vertical-align": "bottom"})  # on_value=set_n_proj()
+        solara.Switch(label="Scale flats based on SR current", value=ar.flats_scale, disabled=not (ar.separate_flats.value))
+
+    if ar.separate_flats.value:
+        with solara.Card("Select HDF5 file with separate flat fields", subtitle='The detector size must be compatible with the scan', margin=0, classes=["my-2"]): # style={"max-width": "800px"},
+
+            flatsdir, set_flats_directory = solara.use_state(Path(ar.experiment_dir.value).expanduser())
+            solara.FileBrowser(can_select=False, directory=flatsdir, on_directory_change=set_flats_directory, on_file_open=ar.set_flats_file, directory_first=True, filter=filter_h5_file)
+
+def DarksSelect():
+    with solara.Row():
+        solara.Switch(label="Separate dark fields", value=ar.separate_darks)  # on_value=set_n_proj()
+
+    if ar.separate_darks.value:
+        with solara.Card("Select HDF5 file with separate dark fields", subtitle='The detector size must be compatible with the scan', margin=0, classes=["my-2"]): # style={"max-width": "800px"},
+
+            darksdir, set_darks_directory = solara.use_state(Path(ar.experiment_dir.value).expanduser())
+            solara.FileBrowser(can_select=False, directory=darksdir, on_directory_change=set_darks_directory, on_file_open=ar.set_darks_file, directory_first=True, filter=filter_h5_file)
 
 @solara.component
 def FileLoad():
@@ -107,8 +129,10 @@ def FileLoad():
                 solara.SliderRangeInt(label="Projections range", value=ar.proj_range, min=0, max=ar.n_proj.value, disabled=not(ar.proj_range_enable.value), thumb_label='always') # max=n_proj.value,
 
         with solara.Row(): # gap="10px", justify="space-around"
-            solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: ar.load_and_normalize(ar.h5file.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'))
+            solara.Button(label="Load dataset", icon_name="mdi-cloud-download", on_click=lambda: ar.load_and_normalize(ar.h5file.value, ar.h5file_flats.value, ar.h5file_darks.value), style={"height": "40px", "width": "400px"}, disabled=not(os.path.splitext(ar.h5file.value)[1]=='.h5'))
             solara.Switch(label="Normalize", value=ar.normalize_on_load, style={"height": "20px"})
+            solara.Switch(label="Separate flat fields", value=ar.separate_flats, style={"height": "20px"})
+            solara.Switch(label="Separate dark fields", value=ar.separate_darks, style={"height": "20px"})
             solara.Switch(label="Guess Center Of Rotation", value=ar.COR_auto, style={"height": "20px"})
 
         solara.ProgressLinear(ar.load_status.value)
@@ -118,6 +142,8 @@ def DatasetInfo():
     return solara.Markdown(f'''
             ## Dataset information
             * Dataset name: {Path(ar.h5file.value).stem}
+            * Separate flats: {Path(ar.h5file_flats.value).stem}
+            * Separate darks: {Path(ar.h5file_darks.value).stem}
             * Sinogram range: `{ar.sino_range.value[0]} - {ar.sino_range.value[1]}`
             * Projections range: `{ar.proj_range.value[0]} - {ar.proj_range.value[1]}`
             * Sinogram size: {ar.projs_shape.value[0]} x {ar.projs_shape.value[1]} x {ar.projs_shape.value[2]}
@@ -371,7 +397,6 @@ def Page(jupyter=False):
                 with solara.Column():
                     solara.Switch(label="Write reconstruction midplanes", value=ar.write_midplanes, style={"height": "20px"})
                     solara.Switch(label="Log to master google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
-
 
 @solara.component
 def Layout(children):

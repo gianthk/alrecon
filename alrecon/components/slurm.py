@@ -76,7 +76,8 @@ class slurmjob:
                 Alrecon application state. Contains the reconstruction settings as solara reactive state variables.
             '''
 
-        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore {5} --algorithm {6}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.ncore.value, alrecon_state.algorithm.value))
+        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore 8 --algorithm {6}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.algorithm.value))
+        # alrecon_state.ncore.value,
 
         # Add projections range argument
         if alrecon_state.recon_proj_range.value:
@@ -85,6 +86,17 @@ class slurmjob:
         # Add sinogram range argument
         if alrecon_state.recon_sino_range.value:
             py_command = (py_command + (' --sino {0} {1} {2}'.format(alrecon_state.sino_range.value[0], alrecon_state.sino_range.value[1], 1)))
+
+        # add separate flat field dataset argument
+        if alrecon_state.separate_flats.value:
+            py_command = (py_command + (' --flats_separate {0}'.format(alrecon_state.h5file_flats.value)))
+
+            if alrecon_state.flats_scale.value:
+                py_command = py_command + ' --flats_scale'
+
+        # add separate flat field dataset argument
+        if alrecon_state.separate_darks.value:
+            py_command = (py_command + (' --darks_separate {0}'.format(alrecon_state.h5file_darks.value)))
 
         # Add phase retrieval arguments
         if alrecon_state.phase_object.value:
@@ -105,7 +117,11 @@ class slurmjob:
             else:
                 py_command = py_command + ' --no-norm'
 
-        # Add uint data conversion arguments
+        # add nchunk option
+        if alrecon_state.nchunk.value != 0:
+            py_command = (py_command + (' --nchunk {0}'.format(alrecon_state.nchunk.value)))
+
+        # Add integer data conversion arguments
         if alrecon_state.uintconvert.value:
             py_command = py_command + (' --dtype {0} --data_range {1} {2}'.format(alrecon_state.bitdepth.value, alrecon_state.Data_min.value, alrecon_state.Data_max.value))
 
