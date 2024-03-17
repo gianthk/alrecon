@@ -94,7 +94,7 @@ class slurmjob:
             if alrecon_state.flats_scale.value:
                 py_command = py_command + ' --flats_scale'
 
-        # add separate flat field dataset argument
+        # add separate dark field dataset argument
         if alrecon_state.separate_darks.value:
             py_command = (py_command + (' --darks_separate {0}'.format(alrecon_state.h5file_darks.value)))
 
