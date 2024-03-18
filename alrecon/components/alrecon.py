@@ -449,10 +449,10 @@ class alrecon:
 		if (self.Data_min.value == 0) & (self.Data_max.value == 0):
 			recon_subset = self.recon[0::10, 0::10, 0::10]
 
-			# Estimate GV range from data histogram (0.01 and 0.99 quantiles)
-			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.01, 0.99])
-			logger.info("1% quantile: {0}".format(range_min))
-			logger.info("99% quantile: {0}".format(range_max))
+			# Estimate GV range from data histogram (0.1 % and 99.9 % quantiles)
+			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.001, 0.999])
+			logger.info("0.1% quantile: {0}".format(range_min))
+			logger.info("99.9% quantile: {0}".format(range_max))
 			self.Data_min.set(round(range_min, 5))
 			self.Data_max.set(round(range_max, 5))
 
