@@ -6,8 +6,8 @@ For more information, visit the project homepage:
 
 __author__ = ['Gianluca Iori']
 __date_created__ = '2023-08-01'
-__date__ = '2023-11-10'
-__copyright__ = 'Copyright (c) 2023, SESAME'
+__date__ = '2024-03-17'
+__copyright__ = 'Copyright (c) 2024, SESAME'
 __docformat__ = 'restructuredtext en'
 __license__ = "MIT"
 __maintainer__ = 'Gianluca Iori'
@@ -39,8 +39,6 @@ from alrecon.components import gspreadlog, slurm
 from alrecon.components.recon_utils import touint
 
 from pathlib import Path
-
-inhouse = False
 
 def get_project_root() -> Path:
     return str(Path(__file__).parent.parent)
@@ -110,6 +108,7 @@ class alrecon:
 		self.hist_count = solara.reactive(0)
 
 		self.retrieval_status = solara.reactive(False)
+		self.normalized = solara.reactive(False)
 		self.phase_retrieved = solara.reactive(False)
 
 		self.attempt_glog_init()
@@ -126,9 +125,13 @@ class alrecon:
 		self.projs = np.zeros([0, 0, 0])
 		self.projs_stripe = np.zeros([0, 0, 0])
 		self.projs_phase = np.zeros([0, 0, 0])
-		self.flats = np.zeros([0, 0])
-		self.darks = np.zeros([0, 0])
 		self.recon = np.zeros([0, 0, 0])
+
+		if not self.separate_flats.value:
+			self.flats = np.zeros([0, 0])
+
+		if not self.separate_darks.value:
+			self.darks = np.zeros([0, 0])
 
 	def check_settings_paths(self):
 		search_key = '_dir'
@@ -176,7 +179,7 @@ class alrecon:
 
 	def set_output_dirs(self):
 		if self.auto_complete.value:
-			if inhouse:
+			if self.inhouse.value:
 				# CHECK THESE PATHS
 				self.recon_dir.set(path.join(self.experiment_dir.value, 'scratch', self.experiment_name.value, self.dataset.value, 'recon'))
 				self.cor_dir.set(path.join(self.experiment_dir.value, 'scratch', self.experiment_name.value, self.dataset.value, 'cor'))
@@ -189,6 +192,12 @@ class alrecon:
 
 			self.check_path(self.recon_dir, True)
 			self.check_path(self.cor_dir, True)
+
+	def set_flats_file(self, dataset_path):
+		self.h5file_flats.set(dataset_path)
+
+	def set_darks_file(self, dataset_path):
+		self.h5file_darks.set(dataset_path)
 
 	def set_file_and_proj(self, dataset_path):
 		self.h5file.set(dataset_path)
@@ -208,6 +217,11 @@ class alrecon:
 
 		self.dataset.set(path.splitext(path.basename(str(dataset_path)))[0])
 		self.set_output_dirs()
+
+		self.loaded_file.set(False)
+		self.normalized.set(False)
+		self.phase_retrieved.set(False)
+		self.reconstructed.set(False)
 
 	def init_settings(self, filename):
 		with open(filename, "r") as file_object:
@@ -336,6 +350,8 @@ class alrecon:
 
 	def processed_sinogram(self):
 		# Return processed sinogram for reconstruction job
+		if self.normalized.value is False:
+			self.normalize_sinogram()
 
 		if self.phase_object.value:
 			if self.phase_retrieved.value:
@@ -351,11 +367,18 @@ class alrecon:
 
 	def normalize_sinogram(self):
 		self.projs = tomopy.normalize(self.projs, self.flats, self.darks, ncore=self.ncore.value, averaging=self.averaging.value)
+		self.normalized.set(True)
 		logger.info("Sinogram: normalized.")
 
-	def load_and_normalize(self, filename):
+	def load_and_normalize(self, filename, filename_flats='', filename_darks=''):
 		# free some space
-		del self.projs,self.flats,self.darks, self.projs_phase, self.projs_stripe, self.recon
+		del self.projs, self.projs_phase, self.projs_stripe, self.recon
+		if not self.separate_flats.value:
+			del self.flats
+
+		if not self.separate_darks.value:
+			del self.darks
+
 		# reinit 3D arrays
 		self.init_3Darrays()
 
@@ -368,6 +391,13 @@ class alrecon:
 			self.sino_range.set([0, self.sino_rows.value])
 
 		self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(filename, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1), proj=(self.proj_range.value[0], self.proj_range.value[1], 1))
+
+		if (self.separate_flats.value) & (filename_flats != ''):
+			_, self.flats, _, _ = dxchange.read_aps_32id(filename_flats, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
+
+		if (self.separate_darks.value) & (filename_darks != ''):
+			_, _, self.darks, _ = dxchange.read_aps_32id(filename_darks, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
+
 		self.theta = np.radians(dxchange.read_hdf5(filename, 'exchange/theta', slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
 
 		self.loaded_file.set(True)
@@ -501,6 +531,9 @@ class alrecon:
 		self.stripe_removed.set(True)
 
 	def retrieve_phase(self):
+		if self.normalized.value is False:
+			self.normalize_sinogram()
+
 		self.retrieval_status.set(True)
 		phase_start_time = time()
 		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value, nchunk=None)
