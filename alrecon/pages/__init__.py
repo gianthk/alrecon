@@ -218,6 +218,8 @@ def ReconSettings():
     with solara.Card("Reconstruction settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
         solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
         solara.InputInt("Number of algorithm iterations", value=ar.num_iter, continuous_update=False)
+        solara.InputInt("Number of slices per chunk (only for HPC)", value=ar.nchunks, continuous_update=False)
+
 
 @solara.component
 def GeneralSettings(disabled=False, style=None):
