@@ -133,10 +133,12 @@ class alrecon:
 		self.recon = np.zeros([0, 0, 0])
 
 		if not self.separate_flats.value:
-			self.flats = np.zeros([0, 0])
+			self.flats = np.zeros([0, 0, 0])
+
+
 
 		if not self.separate_darks.value:
-			self.darks = np.zeros([0, 0])
+			self.darks = np.zeros([0, 0, 0])
 
 	def check_settings_paths(self):
 		search_key = '_dir'
@@ -445,6 +447,27 @@ class alrecon:
 
 		self.COR.set(self.COR_guess.value)
 		self.COR_range.set([self.COR_guess.value - 20, self.COR_guess.value + 20])
+		self.cor_status.set(False)
+
+	def write_overlap(self):
+		self.cor_status.set(True)
+		for overlap in range(self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value):
+			fileout = f'{self.cor_dir.value}' + f'/slice_{overlap}.tiff'
+			projs_stitch = tomopy.sino_360_to_180(self.projs[:, 0:1, :], overlap=overlap, rotation=self.overlap_side.value)
+			projs_stitch = tomopy.minus_log(projs_stitch, ncore=self.ncore.value)
+			theta = tomopy.angles(projs_stitch.shape[0])
+			COR = projs_stitch.shape[2] / 2
+			print('cor slice ind', self.COR_slice_ind.value)
+			print(projs_stitch.shape)
+			print(theta.shape)
+			print(COR)
+			print(self.ncore.value)
+			recon = tomopy.recon(projs_stitch,
+								 theta,
+								 center=COR,
+								 algorithm='gridrec',
+								 ncore=self.ncore.value)
+			dxchange.writer.write_tiff_stack(recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
 		self.cor_status.set(False)
 
 	def write_cor(self):

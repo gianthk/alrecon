@@ -36,35 +36,67 @@ def filter_h5_file(path):
 
 @solara.component
 def CORdisplay():
-    with solara.Card("", margin=0, classes=["my-2"], style={"width": "200px"}):
-        with solara.Column():   # gap="10px", justify="space-around"
-            solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: ar.guess_COR(), disabled=not(ar.loaded_file.value))
-            solara.InputFloat("COR guess", value=ar.COR_guess, continuous_update=False)
-            SetCOR()
-            solara.ProgressLinear(ar.cor_status.value)
+    if not ar.extended_FOV.value:
+        with solara.Card("", margin=0, classes=["my-2"], style={"width": "200px"}):
+            with solara.Column():   # gap="10px", justify="space-around"
+                solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: ar.guess_COR(), disabled=not(ar.loaded_file.value))
+                solara.InputFloat("COR guess", value=ar.COR_guess, continuous_update=False)
+                SetCOR()
+                solara.ProgressLinear(ar.cor_status.value)
 
 @solara.component
 def CORinspect():
-    with solara.Card(subtitle="COR manual inspection", margin=0, classes=["my-2"], style={"min-width": "900px"}):
-        with solara.Column(): # style={"width": "450px"}
-            with solara.Row():
-                solara.SliderRangeInt("COR range", value=ar.COR_range, step=5, min=0, max=ar.projs.shape[2], thumb_label="always")
-                solara.Markdown(f"Min: {ar.COR_range.value[0]}")
-                solara.Markdown(f"Max: {ar.COR_range.value[1]}")
-            with solara.Row():
-                solara.SliderInt("COR slice", value=ar.COR_slice_ind, step=5, min=ar.sino_range.value[0], max=ar.sino_range.value[1], thumb_label="always")
-                solara.SliderValue("COR step", value=ar.COR_step, values=ar.COR_steps)
+    if not ar.extended_FOV.value:
+        with solara.Card(subtitle="COR manual inspection", margin=0, classes=["my-2"], style={"min-width": "900px"}):
+            with solara.Column(): # style={"width": "450px"}
+                with solara.Row():
+                    solara.SliderRangeInt("COR range", value=ar.COR_range, step=5, min=0, max=ar.projs.shape[2], thumb_label="always")
+                    solara.Markdown(f"Min: {ar.COR_range.value[0]}")
+                    solara.Markdown(f"Max: {ar.COR_range.value[1]}")
+                with solara.Row():
+                    solara.SliderInt("COR slice", value=ar.COR_slice_ind, step=5, min=ar.sino_range.value[0], max=ar.sino_range.value[1], thumb_label="always")
+                    solara.SliderValue("COR step", value=ar.COR_step, values=ar.COR_steps)
 
-            solara.ProgressLinear(ar.cor_status.value)
-            with solara.Row():
-                solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: ar.write_cor(),
-                          disabled=not (ar.loaded_file.value))
-                solara.Button(label="Inspect COR range images", icon_name="mdi-eye",
-                          on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
+                solara.ProgressLinear(ar.cor_status.value)
+                with solara.Row():
+                    solara.Button(label="Write images with COR range", icon_name="mdi-play", on_click=lambda: ar.write_cor(),
+                              disabled=not (ar.loaded_file.value))
+                    solara.Button(label="Inspect COR range images", icon_name="mdi-eye",
+                              on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
+
+@solara.component
+def OverlapInspect():
+    with solara.Card(subtitle="Overlap inspection", margin=0, classes=["my-2"], style={"min-width": "900px"}):
+        solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, style={"height": "40px"})
+
+        if ar.extended_FOV.value:
+            with solara.Column():   # gap="10px", justify="space-around"
+                SetOverlap()
+                solara.ProgressLinear(ar.cor_status.value)
+
+            with solara.Column(): # style={"width": "450px"}
+                with solara.Row():
+                    solara.SliderRangeInt("Overlap range", value=ar.COR_range, step=5, min=0, max=ar.projs.shape[2], thumb_label="always")
+                    solara.Markdown(f"Min: {ar.COR_range.value[0]}")
+                    solara.Markdown(f"Max: {ar.COR_range.value[1]}")
+                with solara.Row():
+                    solara.SliderInt("Inspect slice", value=ar.COR_slice_ind, step=5, min=ar.sino_range.value[0], max=ar.sino_range.value[1], thumb_label="always")
+                    solara.SliderValue("Overlap step", value=ar.COR_step, values=ar.COR_steps)
+
+                solara.ProgressLinear(ar.cor_status.value)
+                with solara.Row():
+                    solara.Button(label="Write images - overlap range", icon_name="mdi-play", on_click=lambda: ar.write_overlap(),
+                              disabled=not (ar.loaded_file.value))
+                    solara.Button(label="Inspect images - overlap range", icon_name="mdi-eye",
+                              on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
 def SetCOR():
     solara.InputFloat("Center Of Rotation (COR)", value=ar.COR, continuous_update=True)
+
+@solara.component
+def SetOverlap():
+    solara.InputFloat("Scan overlap (360 degree scans)", value=ar.overlap, continuous_update=True)
 
 @solara.component
 def NapariViewSinogram(label="Sinogram"):
@@ -262,7 +294,6 @@ def HPCSettings():
                 solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
                 solara.InputInt("Number of slices per chunk (only for HPC)", value=ar.nchunk, continuous_update=False)
 
-
 @solara.component
 def ModifySettings():
 
@@ -325,10 +356,8 @@ def DispProj():
         # ax.grid(True, which="both", color='gray', linewidth=0.2)
         ax.axis('off')
         fig.tight_layout()
-        print(ar.proj0.shape)
+        # print(ar.proj0.shape)
         solara.FigureMatplotlib(fig, dependencies=[ar.sino_range.value])
-
-
 
 @solara.component
 def ReconHistogramMatplotlib():
@@ -438,7 +467,6 @@ def Page(jupyter=False):
                         solara.InputInt("Number of slices per chunk", value=ar.nchunk, continuous_update=False)
                         solara.Select("Sub-node", value=ar.nodelist, values=subnodes)
                         solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
-
 
 @solara.component
 def Layout(children):
