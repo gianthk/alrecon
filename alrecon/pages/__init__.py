@@ -22,6 +22,7 @@ hist_speeds_string = ["slow", "medium", "fast", "very fast"]
 hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
 dim_values = [1, 2]
+overlap_sides = ['left', 'right']
 partitions = ["cpu", "gpu"]
 subnodes = ["gpunode1", "gpunode2"] # , "cpunode"
 ntasks_vals = [2, 4, 8, 12, 24, 48, 96]
@@ -71,7 +72,10 @@ def OverlapInspect():
 
         if ar.extended_FOV.value:
             with solara.Column():   # gap="10px", justify="space-around"
-                SetOverlap()
+                with solara.Row():
+                    SetOverlap()
+                    # solara.SliderValue(label="", value=ar.overlap_side, values=overlap_sides)
+                    solara.ToggleButtonsSingle(value=ar.overlap_side, values=overlap_sides)
                 solara.ProgressLinear(ar.cor_status.value)
 
             with solara.Column(): # style={"width": "450px"}
