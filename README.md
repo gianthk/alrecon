@@ -4,8 +4,6 @@ Pure Python Computed Tomography reconstruction web application. Built with [Sola
 [![GitHub license](https://img.shields.io/github/license/gianthk/alrecon)](https://github.com/gianthk/alrecon/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/701693534.svg)](https://zenodo.org/doi/10.5281/zenodo.10535211)
 
-
-
 <!-- Micro Finite Element (microFE) models can be derived from micro Computed Tomography (microCT) 3D images to non-destructively assess mechanical properties of biological or artificial specimens. <br />
 **ciclope** provides fully open-source pipelines from microCT data preprocessing to microFE model generation, solution and postprocessing. <br /> -->
 
