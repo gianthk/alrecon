@@ -260,7 +260,7 @@ def HPCSettings():
                 solara.Select("Memory per CPU", value=ar.mem_per_cpu, values=mem_per_cpu_vals)
                 solara.Select("Max number of threads", value=ar.max_threads, values=max_threads_vals)
                 solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
-                solara.InputInt("Number of slices per chunk (only for HPC)", value=ar.nchunks, continuous_update=False)
+                solara.InputInt("Number of slices per chunk (only for HPC)", value=ar.nchunk, continuous_update=False)
 
 
 @solara.component
@@ -305,6 +305,30 @@ def ReconHistogram():
                               opacity=0.25,
                               line_width=0)
                 spx.CrossFilteredFigurePlotly(fig)
+
+@solara.component
+def DispProj():
+    with solara.Card(style={"margin": "0px"}):
+        # solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string)
+        fig = Figure(figsize=(8, 4))
+        ax = fig.subplots()
+        ax.imshow(ar.proj0, cmap='gray')
+        ax.axhline(ar.sino_range.value[0], color='lime', linestyle='--', lw=1)
+        ax.axhline(ar.sino_range.value[1], color='lime', linestyle='--', lw=1)
+        # ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+        # ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f' % (bins[0])))
+        # ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f' % (bins[-1])))
+        # ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
+        # ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
+        # ax.set_xlabel('Intensity')
+        # ax.set_ylabel('Counts')
+        # ax.grid(True, which="both", color='gray', linewidth=0.2)
+        ax.axis('off')
+        fig.tight_layout()
+        print(ar.proj0.shape)
+        solara.FigureMatplotlib(fig, dependencies=[ar.sino_range.value])
+
+
 
 @solara.component
 def ReconHistogramMatplotlib():
@@ -377,7 +401,9 @@ def Page(jupyter=False):
     with solara.Card("Load dataset", margin=0, classes=["my-2"]):
         solara.Title(ar.title)
         # solara.Markdown("This is the home page")
-        FileSelect()
+        with solara.Columns():
+            FileSelect()
+            DispProj()
         FileLoad()
 
     with solara.Columns([0.18, 1], gutters_dense=True):
@@ -409,7 +435,7 @@ def Page(jupyter=False):
                     solara.Switch(label="Log to master google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
                 if ar.expert.value:
                     with solara.Column():
-                        solara.InputInt("Number of slices per chunk", value=ar.nchunks, continuous_update=False)
+                        solara.InputInt("Number of slices per chunk", value=ar.nchunk, continuous_update=False)
                         solara.Select("Sub-node", value=ar.nodelist, values=subnodes)
                         solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
 

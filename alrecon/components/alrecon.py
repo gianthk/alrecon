@@ -127,6 +127,7 @@ class alrecon:
 
 	def init_3Darrays(self):
 		self.projs = np.zeros([0, 0, 0])
+		self.proj0 = np.zeros([0, 0])
 		self.projs_stripe = np.zeros([0, 0, 0])
 		self.projs_phase = np.zeros([0, 0, 0])
 		self.recon = np.zeros([0, 0, 0])
@@ -221,6 +222,8 @@ class alrecon:
 
 		self.dataset.set(path.splitext(path.basename(str(dataset_path)))[0])
 		self.set_output_dirs()
+
+		self.set_proj0()
 
 		self.loaded_file.set(False)
 		self.normalized.set(False)
@@ -373,6 +376,10 @@ class alrecon:
 		self.projs = tomopy.normalize(self.projs, self.flats, self.darks, ncore=self.ncore.value, averaging=self.averaging.value)
 		self.normalized.set(True)
 		logger.info("Sinogram: normalized.")
+
+	def set_proj0(self):
+		tmp, _, _, _ = dxchange.read_aps_32id(self.h5file.value, exchange_rank=0, proj=(0, 1, 1))
+		self.proj0 = tmp[0,:,:]
 
 	def load_and_normalize(self, filename, filename_flats='', filename_darks=''):
 		# free some space

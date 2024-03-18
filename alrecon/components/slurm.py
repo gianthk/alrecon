@@ -76,22 +76,22 @@ class slurmjob:
                 Alrecon application state. Contains the reconstruction settings as solara reactive state variables.
             '''
 
-        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore {8} --algorithm {6}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.algorithm.value))
+        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore 8 --algorithm {5}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.algorithm.value))
 
-        # Add nchunks option
-        if alrecon_state.nchunks.value != 0:
-            py_command = (py_command + (' --nchunks {0}'.format(alrecon_state.proj_range.value)))
+        # Add nchunk option
+        if alrecon_state.nchunk.value != 0:
+            py_command = (py_command + (' --nchunk {0}'.format(alrecon_state.nchunk.value)))
 
         # Separate flats
         if alrecon_state.separate_flats.value:
-            py_command = (py_command + (' --separate_flats {0}'.format(alrecon_state.separate_flats.value)))
+            py_command = (py_command + (' --flats_separate {0}'.format(alrecon_state.h5file_flats.value)))
 
             if alrecon_state.flats_scale.value:
                 py_command = py_command + ' --flats_scale'
 
         # Separate darks
         if alrecon_state.separate_darks.value:
-            py_command = (py_command + (' --separate_darks {0}'.format(alrecon_state.separate_darks.value)))
+            py_command = (py_command + (' --darks_separate {0}'.format(alrecon_state.h5file_darks.value)))
 
         # Add projections range argument
         if alrecon_state.recon_proj_range.value:
