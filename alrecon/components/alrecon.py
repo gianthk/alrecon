@@ -121,6 +121,10 @@ class alrecon:
 			self.glog = None
 			self.gspread_logging.set(False)
 
+	def kill_all_imagej_processes(self):
+		command = "for pid in $(ps -ef | grep '{0}' | awk ".format(self.imagej_launcher.value) + "'{print $2}'); do kill -9 $pid; done"
+		subprocess.run(command, shell=True)
+
 	def init_3Darrays(self):
 		self.projs = np.zeros([0, 0, 0])
 		self.projs_stripe = np.zeros([0, 0, 0])

@@ -23,6 +23,7 @@ hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
 dim_values = [1, 2]
 partitions = ["cpu", "gpu"]
+subnodes = ["gpunode1", "gpunode2"] # , "cpunode"
 ntasks_vals = [2, 4, 8, 12, 24, 48, 96]
 cpus_per_task_vals = [1, 2, 4, 8, 12, 24, 48, 96]
 mem_per_cpu_vals = [2, 4, 8, 16, 32, 64, 128, 256]
@@ -86,6 +87,7 @@ def ImageJViewer():
         with solara.Row(gap="10px", justify="space-around"):
             solara.Button(label="COR range", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])), text=True, outlined=True) # , attributes={"href": github_url, "target": "_blank"}
             solara.Button(label="Reconstruction", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.recon_dir.value), text=True, outlined=True)
+        solara.Button(label="Terminate all ImageJ processes", icon_name="mdi-stop", on_click=lambda: ar.kill_all_imagej_processes(), color='red', style={"height": "20px", "vertical-align": "bottom"})
 
 @solara.component
 def FileSelect():
@@ -218,8 +220,6 @@ def ReconSettings():
     with solara.Card("Reconstruction settings", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
         solara.Select("Algorithm", value=ar.algorithm, values=ar.algorithms)
         solara.InputInt("Number of algorithm iterations", value=ar.num_iter, continuous_update=False)
-        solara.InputInt("Number of slices per chunk (only for HPC)", value=ar.nchunks, continuous_update=False)
-
 
 @solara.component
 def GeneralSettings(disabled=False, style=None):
@@ -252,6 +252,7 @@ def HPCSettings():
                 solara.InputText("Reconstruction script", value=ar.recon_script, continuous_update=False)
                 solara.Select("Node", value=ar.node, values=ar.nodes)
                 solara.Select("Partition", value=ar.partition, values=partitions)
+                solara.Select("Sub-node", value=ar.nodelist, values=subnodes)
 
             with solara.Column(gap="0px", style={"margin": "0px"}):
                 solara.Select("Number of tasks", value=ar.ntasks, values=ntasks_vals)
@@ -259,6 +260,8 @@ def HPCSettings():
                 solara.Select("Memory per CPU", value=ar.mem_per_cpu, values=mem_per_cpu_vals)
                 solara.Select("Max number of threads", value=ar.max_threads, values=max_threads_vals)
                 solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
+                solara.InputInt("Number of slices per chunk (only for HPC)", value=ar.nchunks, continuous_update=False)
+
 
 @solara.component
 def ModifySettings():
@@ -309,14 +312,14 @@ def ReconHistogramMatplotlib():
         # set_count(count.value + 1)
         ar.hist_count.set(ar.hist_count.value + 1)
 
-    with solara.Card("Reconstruction histogram", style={"margin": "0px", "height": "450px"}): # "width": "800px",
+    with solara.Card("Reconstruction histogram", style={"margin": "0px"}): # "width": "800px",
         with solara.Row(style={"margin": "20px", "height": "40px"}):
-            solara.Button(label="Plot histogram", icon_name="mdi-chart-histogram", on_click=increment)
+            # solara.Button(label="Plot histogram", icon_name="mdi-chart-histogram", on_click=increment)
             solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string) # , disabled=not(ar.plotreconhist.value)
         with solara.Column(style={"margin": "0px"}):
             # if ar.plotreconhist.value:
             step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
-            fig = Figure(figsize=(8,4.62))
+            fig = Figure(figsize=(8,4))
             ax = fig.subplots()
             counts, bins = np.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), bins=128)
             ax.stairs(counts, bins, fill=True, color='grey')
@@ -394,10 +397,9 @@ def Page(jupyter=False):
 
             solara.Success(f"This al-recon instance reconstructed {ar.recon_counter.value} datasets.", text=True, dense=True, outlined=True, icon=True)
 
-    with solara.Card('Reconstruct on HPC cluster', subtitle='Keep working while our cluster takes care of the job.', margin=0, classes=["my-2"], style={"width": "700px"}):
+    with solara.Card('HPC cluster reconstruction settings', subtitle='Keep working while our cluster takes care of the job.', margin=0, classes=["my-2"]):
         with solara.Column():
-            solara.Button(label="Submit job to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(),
-                          disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
+            # solara.Button(label="Submit job to cluster", icon_name="mdi-rocket", on_click=lambda: ar.cluster_run(), disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
             with solara.Row():
                 with solara.Column():
                     solara.Switch(label='Sinogram range', value=ar.recon_sino_range, style={"height": "20px"})
@@ -405,6 +407,12 @@ def Page(jupyter=False):
                 with solara.Column():
                     solara.Switch(label="Write reconstruction midplanes", value=ar.write_midplanes, style={"height": "20px"})
                     solara.Switch(label="Log to master google spreadsheet", value=ar.gspread_logging, style={"height": "20px"})
+                if ar.expert.value:
+                    with solara.Column():
+                        solara.InputInt("Number of slices per chunk", value=ar.nchunks, continuous_update=False)
+                        solara.Select("Sub-node", value=ar.nodelist, values=subnodes)
+                        solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
+
 
 @solara.component
 def Layout(children):
