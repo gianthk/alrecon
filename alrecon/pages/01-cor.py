@@ -3,7 +3,7 @@ import solara
 import solara.website
 from os import path
 
-from . import CORdisplay, CORinspect, DatasetInfo, SetCOR, OutputSettings, NapariViewer, ImageJViewer
+from . import CORdisplay, CORinspect, DatasetInfo, SetCOR, OutputSettings, NapariViewer, ImageJViewer, FOVExtension, ProcessExtendedFOVScan
 
 @solara.component
 def Page():
@@ -12,11 +12,14 @@ def Page():
             DatasetInfo()
             # SetCOR()
             OutputSettings(disabled=False)
-            NapariViewer()
             ImageJViewer()
+            NapariViewer()
+
+    FOVExtension()
+    ProcessExtendedFOVScan()
 
     solara.Title("Find the Center Of Rotation (COR)")
-    with solara.Card("Find the Center Of Rotation (COR)", margin=0, classes=["my-2"]):
+    with solara.Card("Find the Center Of Rotation (COR)", subtitle="For standard 180 or 360 degrees scans", margin=0, classes=["my-2"]):
         with solara.Columns([0, 1], gutters_dense=True):
             CORdisplay()
             CORinspect()

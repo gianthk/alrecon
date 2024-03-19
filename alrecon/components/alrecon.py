@@ -6,7 +6,7 @@ For more information, visit the project homepage:
 
 __author__ = ['Gianluca Iori']
 __date_created__ = '2023-08-01'
-__date__ = '2024-03-17'
+__date__ = '2024-03-19'
 __copyright__ = 'Copyright (c) 2024, SESAME'
 __docformat__ = 'restructuredtext en'
 __license__ = "MIT"
@@ -98,18 +98,21 @@ class alrecon:
 
 		self.sino_range_enable = solara.reactive(True)
 		self.proj_range_enable = solara.reactive(False)
-		self.load_status = solara.reactive(False)
 		self.loaded_file = solara.reactive(False)
 		self.cor_status = solara.reactive(False)
 		self.stripe_removal_status = solara.reactive(False)
 		self.stripe_removed = solara.reactive(False)
-		self.recon_status = solara.reactive(False)
 		self.reconstructed = solara.reactive(False)
 		self.hist_count = solara.reactive(0)
-
-		self.retrieval_status = solara.reactive(False)
 		self.normalized = solara.reactive(False)
+		self.stitched = solara.reactive(False)
 		self.phase_retrieved = solara.reactive(False)
+
+		self.load_status = solara.reactive(False)
+		self.recon_status = solara.reactive(False)
+		self.write_status = solara.reactive(False)
+		self.retrieval_status = solara.reactive(False)
+		self.stitching_status = solara.reactive(False)
 
 		self.attempt_glog_init()
 
@@ -522,7 +525,7 @@ class alrecon:
 
 	def write_recon(self):
 		fileout = self.recon_dir.value + '/slice.tiff'
-		self.recon_status.set(True)
+		self.write_status.set(True)
 
 		if self.uintconvert.value:
 			if self.circmask.value:
@@ -542,7 +545,7 @@ class alrecon:
 				dxchange.writer.write_tiff_stack(self.recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
 
 		os.chmod(path.dirname(fileout), 0o0777)
-		self.recon_status.set(False)
+		self.write_status.set(False)
 		logger.info("Dataset written to disk.")
 
 	def remove_stripes(self):
@@ -563,6 +566,17 @@ class alrecon:
 		logger.info("Stripes removed with method: {}\n".format(str(self.stripe_removal_method.value)))
 		self.stripe_removal_status.set(False)
 		self.stripe_removed.set(True)
+
+	def sino_360_to_180(self):
+		if self.normalized.value is False:
+			self.normalize_sinogram()
+
+		self.stitching_status.set(True)
+		self.projs = tomopy.sino_360_to_180(self.projs, overlap=self.overlap.value, rotation=self.overlap_side.value)
+		self.theta = tomopy.angles(self.projs.shape[0])
+		self.COR.set(self.projs.shape[2] / 2)
+		self.stitching_status.set(False)
+		self.stitched.set(True)
 
 	def retrieve_phase(self):
 		if self.normalized.value is False:

@@ -23,6 +23,7 @@ hist_steps = [1, 5, 10, 20]
 bitdepths = ["uint8", "uint16"]
 dim_values = [1, 2]
 overlap_sides = ['left', 'right']
+overlap_steps = [1, 2, 5, 10]
 partitions = ["cpu", "gpu"]
 subnodes = ["gpunode1", "gpunode2"] # , "cpunode"
 ntasks_vals = [2, 4, 8, 12, 24, 48, 96]
@@ -47,6 +48,9 @@ def CORdisplay():
 
 @solara.component
 def CORinspect():
+    # with solara.Card(subtitle="Select scan type", margin=0, classes=["my-2"], style={"min-width": "900px"}):
+    #     solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, style={"height": "40px"})
+
     if not ar.extended_FOV.value:
         with solara.Card(subtitle="COR manual inspection", margin=0, classes=["my-2"], style={"min-width": "900px"}):
             with solara.Column(): # style={"width": "450px"}
@@ -66,11 +70,18 @@ def CORinspect():
                               on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
-def OverlapInspect():
-    with solara.Card(subtitle="Overlap inspection", margin=0, classes=["my-2"], style={"min-width": "900px"}):
-        solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, style={"height": "40px"})
+def ProcessExtendedFOVScan():
+    with solara.Card("Sinogram stitching",subtitle="For 360 degrees extended FOV scans", margin=0, classes=["my-2"]):
+        with solara.Columns([0, 1], gutters_dense=True):
+            OverlapInspect()
+            StitchSinogram()
 
-        if ar.extended_FOV.value:
+@solara.component
+def OverlapInspect():
+    if ar.extended_FOV.value:
+        with solara.Card(title="Find the sinogram overlap", margin=0, classes=["my-2"], style={"min-width": "900px"}):
+        # solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, style={"height": "40px"})
+
             with solara.Column():   # gap="10px", justify="space-around"
                 with solara.Row():
                     SetOverlap()
@@ -85,7 +96,7 @@ def OverlapInspect():
                     solara.Markdown(f"Max: {ar.COR_range.value[1]}")
                 with solara.Row():
                     solara.SliderInt("Inspect slice", value=ar.COR_slice_ind, step=5, min=ar.sino_range.value[0], max=ar.sino_range.value[1], thumb_label="always")
-                    solara.SliderValue("Overlap step", value=ar.COR_step, values=ar.COR_steps)
+                    solara.SliderValue("Overlap step", value=ar.COR_step, values=overlap_steps)
 
                 solara.ProgressLinear(ar.cor_status.value)
                 with solara.Row():
@@ -95,8 +106,20 @@ def OverlapInspect():
                               on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
+def StitchSinogram():
+    if ar.extended_FOV.value:
+        with solara.Card("Stitch sinogram", subtitle='Convert 360 degrees sinogram to 180 degrees', elevation=2, margin=0, classes=["my-2"], style={"width": "600px"}):
+            with solara.Column():
+                with solara.Column(style={"margin": "0px"}):
+                    solara.Button(label="Process sinogram", icon_name="mdi-play", on_click=lambda: ar.sino_360_to_180()) # , disabled=not (ar.stripe_remove.value)
+                    solara.ProgressLinear(ar.stitching_status.value)
+
+@solara.component
 def SetCOR():
-    solara.InputFloat("Center Of Rotation (COR)", value=ar.COR, continuous_update=True)
+    if not ar.extended_FOV.value:
+        solara.InputFloat("Center Of Rotation (COR)", value=ar.COR, continuous_update=True)
+    else:
+        solara.InputFloat("Scan overlap (extended FOV)", value=ar.overlap, continuous_update=True)
 
 @solara.component
 def SetOverlap():
@@ -189,11 +212,21 @@ def DatasetInfo():
     # * Flat data size: {flats_shape.value[0]} x {flats_shape.value[1]} x {flats_shape.value[2]}
     # * Dark data size: {darks_shape.value[0]} x {darks_shape.value[1]} x {darks_shape.value[2]}
 
+@solara.component
+def FOVExtension():
+    with solara.Card(title="Field of view extension", elevation=1, margin=0, classes=["my-2"]):
+        with solara.Row():
+            solara.Switch(label="Extended FOV scan", value=ar.extended_FOV)
+            solara.Checkbox(label="Stitched", value=ar.stitched, disabled=True)
+
+@solara.component
 def ReconInfo():
-    solara.Checkbox(label="Dataset loaded", value=ar.loaded_file, style="height: 20px", disabled=True)
-    solara.Checkbox(label="Normalized", value=ar.normalized, style="height: 20px", disabled=True)
-    solara.Checkbox(label="Phase retrieved", value=ar.phase_retrieved, style="height: 20px", disabled=True)
-    solara.Checkbox(label="Reconstructed", value=ar.reconstructed, style="height: 40px", disabled=True)
+    FOVExtension()
+    with solara.Card("Process steps", elevation=1, margin=0, classes=["my-2"]):
+        solara.Checkbox(label="Dataset loaded", value=ar.loaded_file, style="height: 20px", disabled=True)
+        solara.Checkbox(label="Normalized", value=ar.normalized, style="height: 20px", disabled=True)
+        solara.Checkbox(label="Phase retrieved", value=ar.phase_retrieved, style="height: 20px", disabled=True)
+        solara.Checkbox(label="Reconstructed", value=ar.reconstructed, style="height: 40px", disabled=True)
 
 @solara.component
 def PhaseRetrieval():
@@ -222,6 +255,7 @@ def Recon():
             solara.ProgressLinear(ar.recon_status.value)
             NapariViewRecon(label="View with napari")
             solara.Button(label="Write to disk", icon_name="mdi-content-save-all-outline", on_click=lambda: ar.write_recon(), disabled=not(ar.reconstructed.value))
+            solara.ProgressLinear(ar.write_status.value)
 
 @solara.component
 def OutputControls():
@@ -428,8 +462,9 @@ def Page(jupyter=False):
             DatasetInfo()
             ReconInfo()
             OutputSettings(disabled=False)
-            NapariViewer()
             ImageJViewer()
+            if jupyter:
+                NapariViewer()
 
     with solara.Card("Load dataset", margin=0, classes=["my-2"]):
         solara.Title(ar.title)
