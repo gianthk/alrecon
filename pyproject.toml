@@ -34,10 +34,10 @@ dependencies = [
     "tomopy",
     "pathlib",
     "solara",
-    "plotly",
     "dxchange",
     "pyyaml",
     "numpy",
+    "pypng",
     "tifffile",
     "matplotlib",
 ]
@@ -45,7 +45,8 @@ dependencies = [
 [project.optional-dependencies]
 all = [
     "pandas",
-    "astra-toolbox::astra-toolbox",
+    "plotly",
+    "astra-toolbox",
     "gspread",
     "gspread_dataframe",
     "oauth2client",
