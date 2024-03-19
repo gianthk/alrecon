@@ -1,25 +1,31 @@
 # App settings:
-master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
-master_spreadsheet: 'master'
-gspread_key: ''
-gspread_logging: False
-experiment_dir: "/PETRA/SED/BEATS/IH/"
-experiment_name: '<experiment_name>'
+master_file: '/PETRA/SED/BEATS/SEM_6_recon/20235212/20235212_master.csv'
+master_spreadsheet: '20235212_master'
+gspread_key: '/home/beatsbs/PycharmProjects/alrecon/keys/alrecon-e50b00b0b6f6.json'
+gspread_logging: True
+experiment_dir: "/PETRA/SED/BEATS/SEM_6/20235212/ExpData"
+experiment_name: '20235212'
+inhouse: False
 h5file: ''
+h5file_flats: ''
+h5file_darks: ''
 dataset: '<dataset>'
-recon_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/recon'
-cor_dir: '/PETRA/SED/BEATS/IH/scratch/pippo/cor'
+recon_dir: '/PETRA/SED/BEATS/SEM_6_recon/20235212/recon'
+cor_dir: '/PETRA/SED/BEATS/SEM_6_recon/20235212/cor'
 auto_complete: True
-imagej_launcher: '/opt/fiji-linux64/Fiji.app/ImageJ-linux64'
+imagej_launcher: '/opt/Fiji.app/ImageJ-linux64'
 # General settings
-expert: False
-ncore: 4
+expert: True
+ncore: 28
 normalize_on_load: True
 recon_sino_range: False
 sino_range: [980, 1020]
 recon_proj_range: False
 proj_range: [0, 4001]
-averaging: 'mean'
+averaging: 'median'
+separate_flats: False
+flats_scale: False
+separate_darks: False
 # Stripe removal settings
 stripe_remove: False
 stripe_removal_method: 'remove_all_stripe'
@@ -36,6 +42,10 @@ COR: 1280
 COR_step: 1
 COR_auto: False
 COR_algorithm: 'TomoPy'
+# Extended FOV settings
+extended_FOV: False
+overlap: 1280
+overlap_side: 'left'
 # Phase retrieval settings
 phase_object: False
 pad: True
@@ -55,17 +65,18 @@ circmask_ratio: 0.9
 write_midplanes: True
 # Plot settings
 plotreconhist: False
-hist_speed: 'fast'
+hist_speed: 'medium'
 # Slurm settings
 remote_user: 'beatsbs'
-remote_host: '0.0.0.0'
+remote_host: '10.1.32.20'
 node: 'rum'
-partition: 'cpu'
+partition: 'gpu'
 nodelist: 'gpunode1'
 gres: 'gpu:1'
 ntasks: 11
+nchunk: 100
 cpus_per_task: 8
 max_time_min: 40
-mem_per_cpu: 2
+mem_per_cpu: '2G'
 max_threads: 10
-recon_script: 'BEATS_recon.py'
+recon_script: '/PETRA/SED/BEATS/IH/scratch/scripts/BEATS_recon.py'
