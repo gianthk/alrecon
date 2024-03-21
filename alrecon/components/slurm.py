@@ -39,7 +39,7 @@ class slurmjob:
             fh.writelines("#SBATCH --error={0}_%j.err\n".format(self.job_name))
             fh.writelines("#SBATCH --ntasks={0}\n".format(alrecon_state.ntasks))
             fh.writelines("#SBATCH --cpus-per-task={0}\n".format(alrecon_state.cpus_per_task))
-            fh.writelines("#SBATCH --time=00:{0}:00\n".format(alrecon_state.max_time_min))
+            fh.writelines("#SBATCH --time={0}\n".format(alrecon_state.max_time_min))
             fh.writelines("#SBATCH --partition={0}\n".format(alrecon_state.partition.value))
             fh.writelines("#SBATCH --nodelist={0}\n".format(alrecon_state.nodelist.value))
             fh.writelines("#SBATCH --gres={0}\n".format(alrecon_state.gres.value))
@@ -76,7 +76,13 @@ class slurmjob:
                 Alrecon application state. Contains the reconstruction settings as solara reactive state variables.
             '''
 
-        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --cor {4} --ncore 8 --algorithm {5}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.COR.value, alrecon_state.algorithm.value))
+        py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --ncore 8 --algorithm {4}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.algorithm.value))
+
+        # center of rotation or scan overlap options
+        if alrecon_state.extended_FOV.value:
+            py_command = (py_command + (' --360 --overlap {0} --rotside {1}'.format(int(alrecon_state.overlap.value), alrecon_state.overlap_side.value)))
+        else:
+            py_command = (py_command + (' --cor {0}'.format(alrecon_state.COR.value)))
 
         # Add nchunk option
         if alrecon_state.nchunk.value != 0:
@@ -134,3 +140,5 @@ class slurmjob:
 
         # set the reconstruction command
         self.recon_command = py_command
+
+        return py_command

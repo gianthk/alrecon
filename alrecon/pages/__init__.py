@@ -8,7 +8,7 @@ import matplotlib
 # import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 font = {'weight' : 'normal',
-        'size'   : 16}
+        'size'   : 8}
 matplotlib.rc('font', **font)
 
 from alrecon.components import alrecon, viewers
@@ -39,7 +39,7 @@ def filter_h5_file(path):
 @solara.component
 def CORdisplay():
     if not ar.extended_FOV.value:
-        with solara.Card("", margin=0, classes=["my-2"], style={"width": "200px"}):
+        with solara.Card("", margin=0, classes=["my-2"]):   # , style={"width": "200px"}
             with solara.Column():   # gap="10px", justify="space-around"
                 solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: ar.guess_COR(), disabled=not(ar.loaded_file.value))
                 solara.InputFloat("COR guess", value=ar.COR_guess, continuous_update=False)
@@ -87,7 +87,7 @@ def OverlapInspect():
                     SetOverlap()
                     # solara.SliderValue(label="", value=ar.overlap_side, values=overlap_sides)
                     solara.ToggleButtonsSingle(value=ar.overlap_side, values=overlap_sides)
-                solara.ProgressLinear(ar.cor_status.value)
+                # solara.ProgressLinear(ar.cor_status.value)
 
             with solara.Column(): # style={"width": "450px"}
                 with solara.Row():
@@ -111,7 +111,7 @@ def StitchSinogram():
         with solara.Card("Stitch sinogram", subtitle='Convert 360 degrees sinogram to 180 degrees', elevation=2, margin=0, classes=["my-2"], style={"width": "600px"}):
             with solara.Column():
                 with solara.Column(style={"margin": "0px"}):
-                    solara.Button(label="Process sinogram", icon_name="mdi-play", on_click=lambda: ar.sino_360_to_180()) # , disabled=not (ar.stripe_remove.value)
+                    solara.Button(label="Process sinogram", icon_name="mdi-play", on_click=lambda: ar.sino_360_to_180(), disabled=not (ar.extended_FOV.value))
                     solara.ProgressLinear(ar.stitching_status.value)
 
 @solara.component
@@ -216,7 +216,7 @@ def DatasetInfo():
 def FOVExtension():
     with solara.Card(title="Field of view extension", elevation=1, margin=0, classes=["my-2"]):
         with solara.Row():
-            solara.Switch(label="Extended FOV scan", value=ar.extended_FOV)
+            solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, disabled=ar.stitched.value)
             solara.Checkbox(label="Stitched", value=ar.stitched, disabled=True)
 
 @solara.component
@@ -354,48 +354,48 @@ def ModifySettings():
             # if ar.saved_info:
             #     solara.Success(f"{ar.settings_file.value} saved.", text=True, dense=True, icon=False)
 
-@solara.component
-def ReconHistogram():
-    with solara.Card("Reconstruction histogram", style={"margin": "0px", "height": "450px"}): # "width": "800px",
-        with solara.Row(style={"max-width": "500px", "margin": "0px"}):
-            # with solara.Card(style={"max-width": "200px", "margin": "0px"}):
-            solara.Switch(label="Plot histogram", value=ar.plotreconhist)
-            solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string, disabled=not(ar.plotreconhist.value))
-        with solara.Column(style={"margin": "0px"}):
-            if ar.plotreconhist.value:
-                step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
-                fig = px.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), height=300)
-                fig.update_layout(showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
-                fig.add_vrect(x0=ar.Data_min.value,
-                              x1=ar.Data_max.value,
-                              annotation_text=("            Min: " + str(ar.Data_min.value) + "<br>             Max: " + str(ar.Data_max.value)),
-                              annotation_position="top left",
-                              fillcolor="pink",
-                              opacity=0.25,
-                              line_width=0)
-                spx.CrossFilteredFigurePlotly(fig)
+# @solara.component
+# def ReconHistogram():
+#     with solara.Card("Reconstruction histogram", style={"margin": "0px", "height": "450px"}): # "width": "800px",
+#         with solara.Row(style={"max-width": "500px", "margin": "0px"}):
+#             # with solara.Card(style={"max-width": "200px", "margin": "0px"}):
+#             solara.Switch(label="Plot histogram", value=ar.plotreconhist)
+#             solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string, disabled=not(ar.plotreconhist.value))
+#         with solara.Column(style={"margin": "0px"}):
+#             if ar.plotreconhist.value:
+#                 step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
+#                 fig = px.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), height=300)
+#                 fig.update_layout(showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
+#                 fig.add_vrect(x0=ar.Data_min.value,
+#                               x1=ar.Data_max.value,
+#                               annotation_text=("            Min: " + str(ar.Data_min.value) + "<br>             Max: " + str(ar.Data_max.value)),
+#                               annotation_position="top left",
+#                               fillcolor="pink",
+#                               opacity=0.25,
+#                               line_width=0)
+#                 spx.CrossFilteredFigurePlotly(fig)
 
 @solara.component
 def DispProj():
-    with solara.Card(style={"margin": "0px"}):
-        # solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string)
-        fig = Figure(figsize=(8, 4))
-        ax = fig.subplots()
-        ax.imshow(ar.proj0, cmap='gray')
-        ax.axhline(ar.sino_range.value[0], color='lime', linestyle='--', lw=1)
-        ax.axhline(ar.sino_range.value[1], color='lime', linestyle='--', lw=1)
-        # ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
-        # ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f' % (bins[0])))
-        # ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f' % (bins[-1])))
-        # ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
-        # ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
-        # ax.set_xlabel('Intensity')
-        # ax.set_ylabel('Counts')
-        # ax.grid(True, which="both", color='gray', linewidth=0.2)
-        ax.axis('off')
-        fig.tight_layout()
-        # print(ar.proj0.shape)
-        solara.FigureMatplotlib(fig, dependencies=[ar.sino_range.value])
+    if ar.h5file.value != '':
+        with solara.Card(style={"margin": "0px"}):
+            # solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string)
+            # fig = Figure(figsize=(8, 4))
+            fig = Figure()
+            ax = fig.subplots()
+            ax.imshow(ar.proj0, cmap='gray', origin='lower')
+            ax.axhline(ar.sino_range.value[0], color='lime', linestyle='--', lw=1)
+            ax.axhline(ar.sino_range.value[1], color='lime', linestyle='--', lw=1)
+            # ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f' % (bins[0])))
+            # ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f' % (bins[-1])))
+            # ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
+            # ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
+            # ax.set_xlabel('Intensity')
+            # ax.set_ylabel('Counts')
+            # ax.grid(True, which="both", color='gray', linewidth=0.2)
+            # ax.axis('off')
+            fig.tight_layout()
+            solara.FigureMatplotlib(fig, dependencies=[ar.sino_range.value, ar.h5file.value])
 
 @solara.component
 def ReconHistogramMatplotlib():
@@ -408,30 +408,31 @@ def ReconHistogramMatplotlib():
             # solara.Button(label="Plot histogram", icon_name="mdi-chart-histogram", on_click=increment)
             solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string) # , disabled=not(ar.plotreconhist.value)
         with solara.Column(style={"margin": "0px"}):
+            print('skip for now')
             # if ar.plotreconhist.value:
-            step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
-            fig = Figure(figsize=(8,4))
-            ax = fig.subplots()
-            counts, bins = np.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), bins=128)
-            ax.stairs(counts, bins, fill=True, color='grey')
-            ax.vlines(ar.Data_min.value, 0, counts.max(), color='m', linestyle='--', lw=1)
-            ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
-            ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f'%(bins[0])))
-            ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f'%(bins[-1])))
-            ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
-            ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
-            ax.set_xlabel('Intensity')
-            ax.set_ylabel('Counts')
-            ax.grid(True, which="both", color='gray', linewidth=0.2)
-            fig.tight_layout()
-            solara.FigureMatplotlib(fig, dependencies=[ar.hist_count.value, ar.Data_min.value, ar.Data_max.value, ar.hist_speed.value])
+            # step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
+            # fig = Figure(figsize=(8,4))
+            # ax = fig.subplots()
+            # counts, bins = np.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), bins=128)
+            # ax.stairs(counts, bins, fill=True, color='grey')
+            # ax.vlines(ar.Data_min.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+            # ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+            # ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f'%(bins[0])))
+            # ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f'%(bins[-1])))
+            # ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
+            # ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
+            # ax.set_xlabel('Intensity')
+            # ax.set_ylabel('Counts')
+            # ax.grid(True, which="both", color='gray', linewidth=0.2)
+            # fig.tight_layout()
+            # solara.FigureMatplotlib(fig, dependencies=[ar.hist_count.value, ar.Data_min.value, ar.Data_max.value, ar.hist_speed.value])
 
 @solara.component
 def StripeRemoval():
     with solara.Card("Remove stripe artifacts from sinogram", subtitle="See https://tomopy.readthedocs.io/en/latest/api/tomopy.prep.stripe.html#", elevation=2, margin=0, classes=["my-2"], style={"width": "600px"}):
         with solara.Column():
             with solara.Column(style={"margin": "0px"}):
-                solara.Switch(label="Apply stripe removal before reconstruction", value=ar.stripe_remove, disabled=not(ar.loaded_file.value)) # , style={"height": "20px", "vertical-align": "top"}
+                solara.Switch(label="Apply stripe removal before reconstruction", value=ar.stripe_remove) # , disabled=not(ar.loaded_file.value) , style={"height": "20px", "vertical-align": "top"}
                 solara.Button(label="Process sinogram to remove stripes", icon_name="mdi-play", on_click=lambda: ar.remove_stripes(), disabled=not (ar.stripe_remove.value))
                 solara.ProgressLinear(ar.stripe_removal_status.value)
 
@@ -481,9 +482,10 @@ def Page(jupyter=False):
             with solara.Columns([0,1,2], gutters_dense=True):
                 with solara.Column():
                     Recon()
-                    solara.Button(label="Submit job to cluster", icon_name="mdi-rocket",
-                                  on_click=lambda: ar.cluster_run(),
-                                  disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
+                    with solara.Tooltip("Have you checked all parameters?"):
+                        solara.Button(label="Submit job to cluster", icon_name="mdi-rocket",
+                                      on_click=lambda: ar.cluster_run(),
+                                      disabled=not (os.path.splitext(ar.h5file.value)[1] == '.h5'), color="primary")
 
                 OutputControls()
                 # ReconHistogram()

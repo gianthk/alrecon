@@ -76,6 +76,7 @@ class alrecon:
 		self.exp_time = 0.
 		self.theta = np.zeros(1)
 		self.init_3Darrays()
+		self.proj0 = np.zeros([0, 0])
 
 		self.dataset = solara.reactive('')
 		self.n_proj = solara.reactive(10001)
@@ -130,15 +131,12 @@ class alrecon:
 
 	def init_3Darrays(self):
 		self.projs = np.zeros([0, 0, 0])
-		self.proj0 = np.zeros([0, 0])
 		self.projs_stripe = np.zeros([0, 0, 0])
 		self.projs_phase = np.zeros([0, 0, 0])
 		self.recon = np.zeros([0, 0, 0])
 
 		if not self.separate_flats.value:
 			self.flats = np.zeros([0, 0, 0])
-
-
 
 		if not self.separate_darks.value:
 			self.darks = np.zeros([0, 0, 0])
@@ -231,6 +229,7 @@ class alrecon:
 		self.set_proj0()
 
 		self.loaded_file.set(False)
+		self.stitched.set(False)
 		self.normalized.set(False)
 		self.phase_retrieved.set(False)
 		self.reconstructed.set(False)
@@ -395,7 +394,7 @@ class alrecon:
 		if not self.separate_darks.value:
 			del self.darks
 
-		# reinit 3D arrays
+		# reinitialize 3D arrays
 		self.init_3Darrays()
 
 		self.load_status.set(True)
@@ -517,6 +516,7 @@ class alrecon:
 			recon_subset = self.recon[0::10, 0::10, 0::10]
 
 			# Estimate GV range from data histogram (0.1 % and 99.9 % quantiles)
+			# need to add a circular mask before hist
 			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.001, 0.999])
 			logger.info("0.1% quantile: {0}".format(range_min))
 			logger.info("99.9% quantile: {0}".format(range_max))
@@ -575,8 +575,10 @@ class alrecon:
 		self.projs = tomopy.sino_360_to_180(self.projs, overlap=self.overlap.value, rotation=self.overlap_side.value)
 		self.theta = tomopy.angles(self.projs.shape[0])
 		self.COR.set(self.projs.shape[2] / 2)
+		self.projs_shape.set(self.projs.shape)
 		self.stitching_status.set(False)
 		self.stitched.set(True)
+		logger.info("Sinogram: stitched to 180 degrees.")
 
 	def retrieve_phase(self):
 		if self.normalized.value is False:
