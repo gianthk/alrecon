@@ -30,7 +30,7 @@ ntasks_vals = [2, 4, 8, 12, 24, 48, 96]
 cpus_per_task_vals = [1, 2, 4, 8, 12, 24, 48, 96]
 mem_per_cpu_vals = [2, 4, 8, 16, 32, 64, 128, 256]
 max_threads_vals = [2, 4, 8, 12, 24, 48, 96]
-max_time_min_vals = [10, 20, 30, 60, 120, 180, 360]
+max_time_min_vals = [10, 20, 40, 60, 120, 180, 360]
 
 def filter_h5_file(path):
     _, ext = os.path.splitext(path)
@@ -70,30 +70,37 @@ def CORinspect():
                               on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, '/{:04.2f}'.format(ar.COR_range.value[0])))
 
 @solara.component
+def CORfind():
+    if not ar.extended_FOV.value:
+        with solara.Card("Find the Center Of Rotation (COR)", subtitle="For standard FOV scans (180 or 360 degrees)",
+                         elevation=2, margin=0, classes=["my-2"]):
+            with solara.Columns([0, 1], gutters_dense=True):
+                CORdisplay()
+                CORinspect()
+
+            with solara.Card(subtitle="Example of COR optimization", margin=0, classes=["my-2"], style={"width": "1500px"}):
+                image_path = Path('./docs/pictures/COR_optimization.jpg').as_posix()
+                solara.Image(image_path)  # , width='1500px'
+
+@solara.component
 def ProcessExtendedFOVScan():
-    with solara.Card("Sinogram stitching",subtitle="For 360 degrees extended FOV scans", margin=0, classes=["my-2"]):
-        with solara.Columns([0, 1], gutters_dense=True):
-            OverlapInspect()
-            StitchSinogram()
+    if ar.extended_FOV.value:
+        with solara.Card("Sinogram stitching",subtitle="For 360 degrees extended FOV scans", margin=0, classes=["my-2"]):
+            with solara.Columns([0, 1], gutters_dense=True):
+                OverlapInspect()
+                StitchSinogram()
 
 @solara.component
 def OverlapInspect():
-    if ar.extended_FOV.value:
-        with solara.Card(title="Find the sinogram overlap", margin=0, classes=["my-2"], style={"min-width": "900px"}):
-        # solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, style={"height": "40px"})
 
-            with solara.Column():   # gap="10px", justify="space-around"
-                with solara.Row():
-                    SetOverlap()
-                    # solara.SliderValue(label="", value=ar.overlap_side, values=overlap_sides)
-                    solara.ToggleButtonsSingle(value=ar.overlap_side, values=overlap_sides)
-                # solara.ProgressLinear(ar.cor_status.value)
+       with solara.Card(title="Find the sinogram overlap", margin=0, classes=["my-2"], style={"min-width": "900px"}):
 
             with solara.Column(): # style={"width": "450px"}
                 with solara.Row():
-                    solara.SliderRangeInt("Overlap range", value=ar.COR_range, step=5, min=0, max=ar.projs.shape[2], thumb_label="always")
+                    solara.SliderRangeInt("Overlap range and side", value=ar.COR_range, step=5, min=0, max=ar.projs.shape[2], thumb_label="always")
                     solara.Markdown(f"Min: {ar.COR_range.value[0]}")
                     solara.Markdown(f"Max: {ar.COR_range.value[1]}")
+                    solara.ToggleButtonsSingle(value=ar.overlap_side, values=overlap_sides)
                 with solara.Row():
                     solara.SliderInt("Inspect slice", value=ar.COR_slice_ind, step=5, min=ar.sino_range.value[0], max=ar.sino_range.value[1], thumb_label="always")
                     solara.SliderValue("Overlap step", value=ar.COR_step, values=overlap_steps)
@@ -111,7 +118,8 @@ def StitchSinogram():
         with solara.Card("Stitch sinogram", subtitle='Convert 360 degrees sinogram to 180 degrees', elevation=2, margin=0, classes=["my-2"], style={"width": "600px"}):
             with solara.Column():
                 with solara.Column(style={"margin": "0px"}):
-                    solara.Button(label="Process sinogram", icon_name="mdi-play", on_click=lambda: ar.sino_360_to_180(), disabled=not (ar.extended_FOV.value))
+                    SetOverlap()
+                    solara.Button(label="Stitch sinogram", icon_name="mdi-play", on_click=lambda: ar.sino_360_to_180(), disabled=not (ar.extended_FOV.value))
                     solara.ProgressLinear(ar.stitching_status.value)
 
 @solara.component
@@ -123,7 +131,7 @@ def SetCOR():
 
 @solara.component
 def SetOverlap():
-    solara.InputFloat("Scan overlap (360 degree scans)", value=ar.overlap, continuous_update=True)
+    solara.InputFloat("Scan overlap", value=ar.overlap, continuous_update=True)
 
 @solara.component
 def NapariViewSinogram(label="Sinogram"):
@@ -335,7 +343,6 @@ def HPCSettings():
 @solara.component
 def ModifySettings():
 
-    #print(solara.use_state(Path("./")))
     settings_directory, set_directory = solara.use_state(Path("./alrecon/settings").expanduser())
 
     def load_settings(path):
@@ -408,24 +415,23 @@ def ReconHistogramMatplotlib():
             # solara.Button(label="Plot histogram", icon_name="mdi-chart-histogram", on_click=increment)
             solara.SliderValue(label="", value=ar.hist_speed, values=hist_speeds_string) # , disabled=not(ar.plotreconhist.value)
         with solara.Column(style={"margin": "0px"}):
-            print('skip for now')
-            # if ar.plotreconhist.value:
-            # step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
-            # fig = Figure(figsize=(8,4))
-            # ax = fig.subplots()
-            # counts, bins = np.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), bins=128)
-            # ax.stairs(counts, bins, fill=True, color='grey')
-            # ax.vlines(ar.Data_min.value, 0, counts.max(), color='m', linestyle='--', lw=1)
-            # ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
-            # ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f'%(bins[0])))
-            # ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f'%(bins[-1])))
-            # ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
-            # ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
-            # ax.set_xlabel('Intensity')
-            # ax.set_ylabel('Counts')
-            # ax.grid(True, which="both", color='gray', linewidth=0.2)
-            # fig.tight_layout()
-            # solara.FigureMatplotlib(fig, dependencies=[ar.hist_count.value, ar.Data_min.value, ar.Data_max.value, ar.hist_speed.value])
+            if ar.plotreconhist.value:
+                step = hist_steps[hist_speeds_string.index(ar.hist_speed.value)]
+                fig = Figure(figsize=(8,4))
+                ax = fig.subplots()
+                counts, bins = np.histogram(ar.recon[0::step, 0::step, 0::step].ravel(), bins=128)
+                ax.stairs(counts, bins, fill=True, color='grey')
+                ax.vlines(ar.Data_min.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+                ax.vlines(ar.Data_max.value, 0, counts.max(), color='m', linestyle='--', lw=1)
+                ax.text(bins[0], 0.9 * counts.max(), "Min: " + str('%.4f'%(bins[0])))
+                ax.text(bins[0], 0.8 * counts.max(), "Max: " + str('%.4f'%(bins[-1])))
+                ax.text(ar.Data_min.value, 0.5 * counts.max(), str(ar.Data_min.value))
+                ax.text(ar.Data_max.value, 0.5 * counts.max(), str(ar.Data_max.value))
+                ax.set_xlabel('Intensity')
+                ax.set_ylabel('Counts')
+                ax.grid(True, which="both", color='gray', linewidth=0.2)
+                fig.tight_layout()
+                solara.FigureMatplotlib(fig, dependencies=[ar.hist_count.value, ar.Data_min.value, ar.Data_max.value, ar.hist_speed.value])
 
 @solara.component
 def StripeRemoval():

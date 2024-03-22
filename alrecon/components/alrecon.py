@@ -194,7 +194,6 @@ class alrecon:
 			else:
 				#out_path = path.join(f'{self.experiment_dir.value}_recon', self.experiment_name.value, self.dataset.value,  'recon')
 				self.dir_recon_root = self.define_recon_dir_BEATS()
-				#print('HERE:    ', self.dir_recon_root)
 				self.recon_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value,  'recon'))
 				self.cor_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value,  'cor'))
 
@@ -361,20 +360,22 @@ class alrecon:
 
 	def processed_sinogram(self):
 		# Return processed sinogram for reconstruction job
+
+		# normalize if not yet normalized
 		if self.normalized.value is False:
 			self.normalize_sinogram()
 
-		if self.phase_object.value:
-			if self.phase_retrieved.value:
-				logger.info("Applied -log transform.")
-				return tomopy.minus_log(self.projs_phase, ncore=self.ncore.value)
-			else:
-				logger.error("Phase object was selected but phase shift was not retrieved. I will reconstruct an absorption object.")
-				logger.info("Applied -log transform.")
-				return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
-		else:
-			logger.info("Applied -log transform.")
-			return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
+		# stitch if extended FOV is selected but sinogram was not stitched
+		if (self.extended_FOV.value is True) & (self.stitched.value is False):
+			self.sino_360_to_180()
+
+		# phase retrieval
+		if (self.phase_object.value is True) & (self.phase_retrieved.value is False):
+			self.retrieve_phase()
+
+		# log transform
+		logger.info("Sinogram: applied -log transform.")
+		return tomopy.minus_log(self.sinogram(), ncore=self.ncore.value)
 
 	def normalize_sinogram(self):
 		self.projs = tomopy.normalize(self.projs, self.flats, self.darks, ncore=self.ncore.value, averaging=self.averaging.value)
@@ -454,21 +455,16 @@ class alrecon:
 	def write_overlap(self):
 		self.cor_status.set(True)
 		for overlap in range(self.COR_range.value[0], self.COR_range.value[1], self.COR_step.value):
-			fileout = f'{self.cor_dir.value}' + f'/slice_{overlap}.tiff'
+			fileout = f'{self.cor_dir.value}' + f'/{overlap}.tiff'
 			projs_stitch = tomopy.sino_360_to_180(self.projs[:, 0:1, :], overlap=overlap, rotation=self.overlap_side.value)
 			projs_stitch = tomopy.minus_log(projs_stitch, ncore=self.ncore.value)
 			theta = tomopy.angles(projs_stitch.shape[0])
 			COR = projs_stitch.shape[2] / 2
-			print('cor slice ind', self.COR_slice_ind.value)
-			print(projs_stitch.shape)
-			print(theta.shape)
-			print(COR)
-			print(self.ncore.value)
 			recon = tomopy.recon(projs_stitch,
-								 theta,
-								 center=COR,
-								 algorithm='gridrec',
-								 ncore=self.ncore.value)
+					 theta,
+					 center=COR,
+					 algorithm='gridrec',
+					 ncore=self.ncore.value)
 			dxchange.writer.write_tiff_stack(recon, fname=fileout, axis=0, digit=4, start=0, overwrite=True)
 		self.cor_status.set(False)
 
@@ -517,9 +513,9 @@ class alrecon:
 
 			# Estimate GV range from data histogram (0.1 % and 99.9 % quantiles)
 			# need to add a circular mask before hist
-			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.001, 0.999])
-			logger.info("0.1% quantile: {0}".format(range_min))
-			logger.info("99.9% quantile: {0}".format(range_max))
+			[range_min, range_max] = np.quantile(recon_subset.ravel(), [0.0001, 0.9999])
+			logger.info("0.01% quantile: {0}".format(range_min))
+			logger.info("99.99% quantile: {0}".format(range_max))
 			self.Data_min.set(round(range_min, 5))
 			self.Data_max.set(round(range_max, 5))
 
@@ -589,7 +585,7 @@ class alrecon:
 		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value, nchunk=None)
 		phase_end_time = time()
 		phase_time = phase_end_time - phase_start_time
-		logger.info("Phase retrieval time: {} s\n".format(str(phase_time)))
+		logger.info("Sinogram: phase retrieved in time: {} s\n".format(str(phase_time)))
 		self.retrieval_status.set(False)
 		self.phase_retrieved.set(True)
 
