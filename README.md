@@ -2,12 +2,13 @@
 Pure Python Computed Tomography reconstruction web application. Built with [Solara](https://solara.dev/).
 
 [![GitHub license](https://img.shields.io/github/license/gianthk/alrecon)](https://github.com/gianthk/alrecon/blob/master/LICENSE)
-[![DOI](https://zenodo.org/badge/701693534.svg)](https://zenodo.org/doi/10.5281/zenodo.10535211)
-
-<!-- Micro Finite Element (microFE) models can be derived from micro Computed Tomography (microCT) 3D images to non-destructively assess mechanical properties of biological or artificial specimens. <br />
-**ciclope** provides fully open-source pipelines from microCT data preprocessing to microFE model generation, solution and postprocessing. <br /> -->
+[![DOI](https://zenodo.org/badge/701693534.svg)](https://doi.org/10.12688/openreseurope.16863.1)
 
 ![](docs/alrecon_home.gif)
+
+### How to cite
+If you use `alrecon` please cite:
+>  Iori et al., (2024). Alrecon: computed tomography reconstruction web application based on Solara. Open Research Europe, 4(54). https://doi.org/10.12688/openreseurope.16863.1  <br>
 
 ## Installation
 <!-- Install `alrecon` using pip. The flag `[all]` will install optional dependencies required for integration with [`napari`](https://napari.org) and logging to google spreadsheets.
