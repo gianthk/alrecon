@@ -6,5 +6,4 @@ from . import ReconList
 def Page():
 
     solara.Title("Your reconstructions")
-    with solara.Card("Inspect completed reconstructions"): # subtitle="Ask before making changes"
-        ReconList()
+    ReconList()

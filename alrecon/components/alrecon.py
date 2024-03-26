@@ -23,6 +23,7 @@ from random import randint
 from time import time
 import numpy as np
 from math import isnan
+import pandas as pd
 
 import dxchange
 import tomopy
@@ -116,6 +117,8 @@ class alrecon:
 		self.stitching_status = solara.reactive(False)
 
 		self.master = None
+# 		self.master = pd.DataFrame({'dataset': ['bee_yazeed-20231001T170032', 'fiber_test_fast-20230731T185659'], 'COR': [1280, 2000], 'recon_dir': ['/tmp/Yazeed/wasp/bee_yazeed-20231001T170032/recon_phase_alpha0.0002',
+# '/home/gianthk/Data/BEATS/IH/scratch/pippo/recon']})
 		self.attempt_glog_init()
 
 	def attempt_glog_init(self):
