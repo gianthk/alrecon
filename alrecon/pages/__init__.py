@@ -461,6 +461,12 @@ def StripeRemoval():
 
 @solara.component
 def ReconList():
+    with solara.Card("Application settings"):  # subtitle="Ask before making changes"
+        solara.Button(label="Refresh", icon_name="mdi-refresh",
+                      on_click=lambda: ar.read_gspread_master(), disabled=not (ar.gspread_logging.value))
+        solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False,
+                         disabled=not (ar.gspread_logging.value))
+
     print('here')
 
 

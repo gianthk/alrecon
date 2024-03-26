@@ -115,6 +115,7 @@ class alrecon:
 		self.retrieval_status = solara.reactive(False)
 		self.stitching_status = solara.reactive(False)
 
+		self.master = None
 		self.attempt_glog_init()
 
 	def attempt_glog_init(self):
@@ -124,6 +125,17 @@ class alrecon:
 			logger.error('Could not initialize gspread logger. Make sure that the gspread_key specified in your settings file exists, and that you have correct permissions.')
 			self.glog = None
 			self.gspread_logging.set(False)
+
+	def read_gspread_master(self):
+		# attempt gspread logger initialization if gspread_logging is selected but the logger is not initialized yet
+		if self.gspread_logging.value:
+			if self.glog is None:
+				self.attempt_glog_init()
+
+		# log reconstruction information to master Google spreadsheet
+		if self.gspread_logging.value:
+			self.master.set(self.glog.read_gspread_master(self.settings))
+			logger.info('Gspread master file read...')
 
 	def kill_all_imagej_processes(self):
 		command = "for pid in $(ps -ef | grep '{0}' | awk ".format(self.imagej_launcher.value) + "'{print $2}'); do kill -9 $pid; done"
