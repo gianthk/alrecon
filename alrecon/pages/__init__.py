@@ -460,6 +460,29 @@ def StripeRemoval():
                     solara.Switch(label="Apply normalization / Remove residual stripes", value=ar.norm, disabled=not (ar.stripe_remove.value)) # style={"height": "20px", "vertical-align": "top"}
 
 @solara.component
+def ReconList():
+    print('here')
+
+
+@solara.component
+def PageSettings():
+    solara.Title("Settings")
+    with solara.Card("Application settings"):  # subtitle="Ask before making changes"
+        with solara.Columns([1, 0]):
+            with solara.Column():
+                GeneralSettings()
+                with solara.Row():
+                    DefaultSettings()
+                    # with solara.Column(align="stretch"):
+                    ReconSettings()
+                    HPCSettings()
+            ModifySettings()
+
+@solara.component
+def Layout(children):
+    return solara.AppLayout(children=children)
+
+@solara.component
 def Page(jupyter=False):
     if not jupyter:
         view.napari_available = False
@@ -514,25 +537,6 @@ def Page(jupyter=False):
                         solara.InputInt("Number of slices per chunk", value=ar.nchunk, continuous_update=False)
                         solara.Select("Sub-node", value=ar.nodelist, values=subnodes)
                         solara.Select("Job time limit (minutes)", value=ar.max_time_min, values=max_time_min_vals)
-
-@solara.component
-def Layout(children):
-    return solara.AppLayout(children=children)
-
-# The following are copies of all alrecon.pages used for executing the app within Jupyter
-@solara.component
-def PageSettings():
-    solara.Title("Settings")
-    with solara.Card("Application settings"):  # subtitle="Ask before making changes"
-        with solara.Columns([1, 0]):
-            with solara.Column():
-                GeneralSettings()
-                with solara.Row():
-                    DefaultSettings()
-                    # with solara.Column(align="stretch"):
-                    ReconSettings()
-                    HPCSettings()
-            ModifySettings()
 
 Page(jupyter=True)
 PageSettings()

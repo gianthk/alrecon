@@ -21,12 +21,12 @@ def spreadsheetname(experiment_name=''):
         return experiment_name+'_master'
 
 def add_to_master_dict(master, settings):
-    """Add entry to master dict based on settings dict
+    """Add entry to master dictionary based on settings dictionary
 
     Parameters
     ----------
     master : dict
-        2D master table dicitonary
+        2D master table dictionary
     settings : dict
         1D reconstruction settings dictionary
     """
@@ -45,7 +45,6 @@ class logger:
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets',
                        'https://www.googleapis.com/auth/drive'
                        ]
-        # self.experiment_name = experiment_name
 
         try:
             import gspread, gspread_dataframe, oauth2client
@@ -57,7 +56,17 @@ class logger:
         else:
             self.creds = None
 
-    def log_to_gspread(self, settings):
+    def log_to_gspread(self, settings, master=None, sheet=None):
+        master, sheet = self.read_gspread_master(settings)
+
+        if master is not None:
+            # add reconstruction entry to master
+            add_to_master_dict(master, settings)
+
+            # update master sheet
+            set_with_dataframe(sheet, master)
+
+    def read_gspread_master(self, settings):
         if self.glogging:
             # access master spreadsheet
             file = gspread.authorize(self.creds)
@@ -70,12 +79,11 @@ class logger:
                 # pull master from spreadsheet
                 master = get_as_dataframe(sheet).dropna(axis=0, how='all')
 
-                # add reconstruction entry to master
-                add_to_master_dict(master, settings)
+                return master, sheet
 
-                # update master sheet
-                set_with_dataframe(sheet, master)
             except:
                 logging.error('Master spreadsheet {0} does not exist. Check that spreadsheet exists and is shared.'.format(settings['master_spreadsheet']))
+                return None
         else:
             logging.error('gspread not available for dataframe logging.')
+            return None

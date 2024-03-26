@@ -224,11 +224,11 @@ class alrecon:
 
 		self.dataset.set(path.splitext(path.basename(str(dataset_path)))[0])
 		self.set_output_dirs()
-
 		self.set_proj0()
 
 		self.loaded_file.set(False)
 		self.stitched.set(False)
+		self.stripe_removed.set(False)
 		self.normalized.set(False)
 		self.phase_retrieved.set(False)
 		self.reconstructed.set(False)
@@ -348,15 +348,17 @@ class alrecon:
 
 	def sinogram(self):
 		# Return sinogram for pre-processing
-
-		if self.stripe_remove.value:
-			if self.stripe_removed.value:
-				return self.projs_stripe
-			else:
-				logger.error("Stripe removal was selected but the sinogram has not been processed. I will proceed without stripe removal.")
-				return self.projs
+		if (self.phase_object.value is True) & (self.phase_retrieved.value is True):
+			return self.projs_phase
 		else:
-			return self.projs
+			if self.stripe_remove.value:
+				if self.stripe_removed.value:
+					return self.projs_stripe
+				else:
+					logger.error("Stripe removal was selected but the sinogram has not been processed. I will proceed without stripe removal.")
+					return self.projs
+			else:
+				return self.projs
 
 	def processed_sinogram(self):
 		# Return processed sinogram for reconstruction job
@@ -582,7 +584,17 @@ class alrecon:
 
 		self.retrieval_status.set(True)
 		phase_start_time = time()
-		self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value, dist=0.1 * self.sdd.value, energy=self.energy.value, alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value, nchunk=None)
+
+		if (self.stripe_remove.value is True) & (self.stripe_removed.value is True):
+			self.projs_phase = tomopy.retrieve_phase(self.projs_stripe, pixel_size=0.0001 * self.pixelsize.value,
+													 dist=0.1 * self.sdd.value, energy=self.energy.value,
+													 alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value,
+													 nchunk=None)
+		else:
+			self.projs_phase = tomopy.retrieve_phase(self.projs, pixel_size=0.0001 * self.pixelsize.value,
+													 dist=0.1 * self.sdd.value, energy=self.energy.value,
+													 alpha=self.alpha.value, pad=self.pad.value, ncore=self.ncore.value,
+													 nchunk=None)
 		phase_end_time = time()
 		phase_time = phase_end_time - phase_start_time
 		logger.info("Sinogram: phase retrieved in time: {} s\n".format(str(phase_time)))

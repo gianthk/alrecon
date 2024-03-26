@@ -78,6 +78,10 @@ class slurmjob:
 
         py_command = ('python {0} {1} --recon_dir {2} --work_dir {3} --ncore 8 --algorithm {4}'.format(alrecon_state.recon_script.value, alrecon_state.h5file.value, alrecon_state.recon_dir.value, os.path.dirname(alrecon_state.recon_dir.value), alrecon_state.algorithm.value))
 
+        # number of iterations for iterative methods
+        if alrecon_state.algorithm.value in ['sirt', 'sart', 'gcls', 'mlem']:
+            py_command = (py_command + (' --num_iter {0}'.format(alrecon_state.num_iter.value)))
+
         # center of rotation or scan overlap options
         if alrecon_state.extended_FOV.value:
             py_command = (py_command + (' --360 --overlap {0} --rotside {1}'.format(int(alrecon_state.overlap.value), alrecon_state.overlap_side.value)))
