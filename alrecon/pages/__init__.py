@@ -467,10 +467,13 @@ def ReconList():
                           on_click=lambda: ar.read_gspread_master(), disabled=not (ar.gspread_logging.value))
             solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False,
                              disabled=not (ar.gspread_logging.value))
+
+    # create a local dataframe for display; remove all NaNs from it
+    master_local = ar.master.fillna('')
     if ar.master is not None:
         with solara.Card("Completed reconstructions", margin=0, classes=["my-2"]):
             with solara.Column(margin=0, gap='0px'):
-                with solara.Columns(gutters_dense=True, widths=[1, 0, 2, 1]):
+                with solara.Columns(gutters_dense=True): # widths=[1, 0, 2, 1]
                     solara.Markdown('**Dataset**')
                     solara.Markdown('**COR**')
                     solara.Markdown('**Reconstruction directory**')
@@ -478,12 +481,12 @@ def ReconList():
 
                 for id in range(0, len(ar.master)):
                     # with solara.Card(margin=0, classes=["my-2"]):
-                    with solara.Columns(gutters_dense=True, widths=[1, 0, 2, 1]):
-                        solara.Markdown(ar.master['dataset'][id])
-                        solara.Markdown(str(ar.master['COR'][id]))
-                        solara.Markdown(ar.master['recon_dir'][id])
+                    with solara.Columns(gutters_dense=True): # , widths=[1, 0, 2, 1]
+                        solara.Markdown(master_local['dataset'][id])
+                        solara.Markdown(str(master_local['COR'][id]))
+                        solara.Markdown(master_local['recon_dir'][id])
                         # solara.InputText(label='', value=ar.master['dataset'][id], continuous_update=False, disabled=True) # style={"height": "20px"}
-                        solara.Button(label="Inspect reconstruction", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.master['recon_dir'][id]), text=True, outlined=True)
+                        solara.Button(label="Inspect reconstruction", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, master_local['recon_dir'][id]), text=True, outlined=True)
 
 @solara.component
 def PageSettings():

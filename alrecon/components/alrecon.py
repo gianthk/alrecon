@@ -116,7 +116,7 @@ class alrecon:
 		self.retrieval_status = solara.reactive(False)
 		self.stitching_status = solara.reactive(False)
 
-		self.master = None
+		self.master = pd.DataFrame()
 # 		self.master = pd.DataFrame({'dataset': ['bee_yazeed-20231001T170032', 'fiber_test_fast-20230731T185659'], 'COR': [1280, 2000], 'recon_dir': ['/tmp/Yazeed/wasp/bee_yazeed-20231001T170032/recon_phase_alpha0.0002',
 # '/home/gianthk/Data/BEATS/IH/scratch/pippo/recon']})
 		self.attempt_glog_init()
@@ -135,9 +135,9 @@ class alrecon:
 			if self.glog is None:
 				self.attempt_glog_init()
 
-		# log reconstruction information to master Google spreadsheet
+		# read master Google spreadsheet with reconstruction information
 		if self.gspread_logging.value:
-			self.master.set(self.glog.read_gspread_master(self.settings))
+			self.master, _ = self.glog.read_gspread_master(self.settings)
 			logger.info('Gspread master file read...')
 
 	def kill_all_imagej_processes(self):

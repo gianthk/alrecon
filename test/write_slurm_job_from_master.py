@@ -10,11 +10,9 @@ def master_line_to_settings(dataframe):
     settings.recon_script = 'BEATS_recon.py'
     settings.h5file = path.join("/PETRA/SED/BEATS/SEM_6/20235081/ExpData/20235081", dataframe['dataset'][0] + '.h5')
     settings.recon_dir = dataframe['recon_dir'][0]
-    settings
 
-
-
-key = '/home/beatsbs/PycharmProjects/alrecon/keys/alrecon-e50b00b0b6f6.json'
+key = '/home/beatsbs/PycharmProjects/alrecon/keys/alrecon-e50b00b0b6f6.json' # beatsbs@BL-BEATS-WS01
+key = '/home/beats/PycharmProjects/BEATS/alrecon/keys/alrecon-e50b00b0b6f6.json' # beats laptop
 master_spreadsheet = 'foo'
 
 scopes = ['https://www.googleapis.com/auth/spreadsheets',
