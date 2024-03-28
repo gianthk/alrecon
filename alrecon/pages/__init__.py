@@ -1,11 +1,12 @@
 import solara
 from pathlib import Path
+from typing import Any, Dict, Optional, cast
 import os
-# import plotly.express as px
-# import solara.express as spx
 import numpy as np
+import pandas as pd
 import matplotlib
-# import matplotlib.pyplot as plt
+import time
+
 from matplotlib.figure import Figure
 font = {'weight' : 'normal',
         'size'   : 8}
@@ -222,15 +223,16 @@ def DatasetInfo():
 
 @solara.component
 def FOVExtension():
-    with solara.Card(title="Field of view extension", elevation=1, margin=0, classes=["my-2"]):
+    with solara.Card(subtitle="Field of view extension", elevation=2, margin=0, classes=["my-2"]):
         with solara.Row():
-            solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, disabled=ar.stitched.value)
-            solara.Checkbox(label="Stitched", value=ar.stitched, disabled=True)
+            solara.Switch(label="Extended FOV scan", value=ar.extended_FOV, disabled=ar.stitched.value, style="height: 30px")
+            solara.Checkbox(label="Stitched", value=ar.stitched, disabled=True, style="height: 30px")
 
 @solara.component
 def ReconInfo():
-    FOVExtension()
+    # FOVExtension()
     with solara.Card("Process steps", elevation=1, margin=0, classes=["my-2"]):
+        FOVExtension()
         solara.Checkbox(label="Dataset loaded", value=ar.loaded_file, style="height: 20px", disabled=True)
         solara.Checkbox(label="Normalized", value=ar.normalized, style="height: 20px", disabled=True)
         solara.Checkbox(label="Phase retrieved", value=ar.phase_retrieved, style="height: 20px", disabled=True)
@@ -458,44 +460,58 @@ def StripeRemoval():
                         value=ar.drop_ratio, continuous_update=False, disabled=not (ar.stripe_remove.value))
                     solara.SliderValue(label='Dimension of the window', value=ar.dim, values=dim_values, disabled=not (ar.stripe_remove.value))
                     solara.Switch(label="Apply normalization / Remove residual stripes", value=ar.norm, disabled=not (ar.stripe_remove.value)) # style={"height": "20px", "vertical-align": "top"}
-import time
 
 @solara.component
 def UpdateTable(master_updated):
     """
+    UpdateTable is deprecated. Use UpdatePandasTable instead
     ar.master is a pandas DataFrame, empty or not
     it appears that we need a react component to update the table
     """
     # create a local dataframe for display; remove all NaNs from it
     master_local = ar.master.fillna('')
-    #if ar.master is not None:
-    # time.sleep(2.5)
+
     with solara.Card("Completed reconstructions", margin=0, classes=["my-2"]):
             # with solara.CardActions():
             with solara.Column(margin=0, gap='0px'):
-                with solara.Columns(gutters_dense=True):  # widths=[1, 0, 2, 1]
+                with solara.ColumnsResponsive([3, 1, 6, 2], gutters_dense=True):  # widths=[1, 0, 2, 1]
                     solara.Markdown('**Dataset**')
                     solara.Markdown('**COR**')
                     solara.Markdown('**Reconstruction directory**')
                     solara.Markdown('')
 
-                for id in range(0, len(ar.master)):
-                    # print(123)
+                for id in range(0, len(master_local)):
                     # with solara.Card(margin=0, classes=["my-2"]):
-                    with solara.Columns(gutters_dense=True):  # , widths=[1, 0, 2, 1]
+                    with solara.ColumnsResponsive([3, 1, 6, 2], gutters_dense=True):  # , widths=[1, 0, 2, 1]
                         solara.Markdown(master_local['dataset'][id])
                         solara.Markdown(str(master_local['COR'][id]))
                         solara.Markdown(master_local['recon_dir'][id])
                         # solara.InputText(label='', value=ar.master['dataset'][id], continuous_update=False, disabled=True) # style={"height": "20px"}
                         solara.Button(label="Inspect reconstruction", icon_name="mdi-eye",
-                                      on_click=lambda: view.imagejView(ImageJ_exe_stack, master_local['recon_dir'][id]),
-
-                                      text=True, outlined=True)
-
-
+                                      on_click=lambda: view.imagejView(ImageJ_exe_stack, str(master_local['recon_dir'][id])), text=True, outlined=True)
+                    # solara.Markdown('---', style={"height": "10px"})
 
 @solara.component
-def ReconList(master_updated):
+def UpdatePandasTable(master_updated):
+    """
+    a react component is used to update the table
+    """
+    # create a local dataframe for display; remove all NaNs from it
+    master_local = ar.master.fillna('')
+
+    cell, set_cell = solara.use_state(cast(Dict[str, Any], {}))
+
+    def on_action_cell(column, row_index):
+        set_cell(dict(column=column, row_index=row_index))
+        view.imagejView(ImageJ_exe_stack, str(master_local['recon_dir'][row_index]))
+
+    cell_actions = [solara.CellAction(icon="mdi-eye", name="Inspect", on_click=on_action_cell)]
+
+    with solara.Card("Completed reconstructions", margin=0, classes=["my-2"]):
+        solara.DataFrame(master_local, items_per_page=50, cell_actions=cell_actions) # , scrollable=True
+
+@solara.component
+def ReconList(master_updated, pandastable=True):
     def read_gspread_and_update_state():
         ar.read_gspread_master()
         master_updated.value += 1
@@ -507,6 +523,9 @@ def ReconList(master_updated):
             solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False,
                              disabled=not (ar.gspread_logging.value))
 
+    if pandastable:
+        UpdatePandasTable(master_updated.value)
+    else:
         UpdateTable(master_updated.value)
 
 @solara.component
