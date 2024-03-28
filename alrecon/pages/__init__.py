@@ -491,47 +491,23 @@ def UpdateTable(master_updated):
                                       on_click=lambda: view.imagejView(ImageJ_exe_stack, master_local['recon_dir'][id]),
 
                                       text=True, outlined=True)
-def test_update(ar, master_updated):
-    ar.read_gspread_master()
-    master_updated.value += 1
+
+
 
 @solara.component
 def ReconList(master_updated):
-    # master_updated = solara.use_reactive(0)
+    def read_gspread_and_update_state():
+        ar.read_gspread_master()
+        master_updated.value += 1
+
     with solara.Card("Master spreadsheet", margin=0, classes=["my-2"]):
         with solara.Row():
             solara.Button(label="Refresh", icon_name="mdi-refresh",
-                          #on_click = test_update(ar, master_updated), disabled = not (ar.gspread_logging.value))
-                          on_click=lambda: ar.read_gspread_master(), disabled=not (ar.gspread_logging.value))
+                          on_click = read_gspread_and_update_state, disabled = not (ar.gspread_logging.value))
             solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False,
                              disabled=not (ar.gspread_logging.value))
-            master_updated.value +=1 # ar.master
 
         UpdateTable(master_updated.value)
-
-    # # create a local dataframe for display; remove all NaNs from it
-    # master_local = ar.master.fillna('')
-    # if ar.master is not None:
-    #     #time.sleep(2.5)
-    #     with solara.Card("Completed reconstructions", margin=0, classes=["my-2"]):
-    #         #with solara.CardActions():
-    #             with solara.Column(margin=0, gap='0px'):
-    #                 with solara.Columns(gutters_dense=True): # widths=[1, 0, 2, 1]
-    #                     solara.Markdown('**Dataset**')
-    #                     solara.Markdown('**COR**')
-    #                     solara.Markdown('**Reconstruction directory**')
-    #                     solara.Markdown('')
-    #
-    #                 for id in range(0, len(ar.master)):
-    #                     print(123)
-    #                     # with solara.Card(margin=0, classes=["my-2"]):
-    #                     with solara.Columns(gutters_dense=True): # , widths=[1, 0, 2, 1]
-    #                         solara.Markdown(master_local['dataset'][id])
-    #                         solara.Markdown(str(master_local['COR'][id]))
-    #                         solara.Markdown(master_local['recon_dir'][id])
-    #                         # solara.InputText(label='', value=ar.master['dataset'][id], continuous_update=False, disabled=True) # style={"height": "20px"}
-    #                         solara.Button(label="Inspect reconstruction", icon_name="mdi-eye", on_click=lambda: view.imagejView(ImageJ_exe_stack, master_local['recon_dir'][id]),
-    #                                       text=True, outlined=True)
 
 @solara.component
 def PageSettings():
