@@ -4,7 +4,7 @@ Pure Python Computed Tomography reconstruction web application. Built with [Sola
 [![GitHub license](https://img.shields.io/github/license/gianthk/alrecon)](https://github.com/gianthk/alrecon/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/701693534.svg)](https://zenodo.org/doi/10.5281/zenodo.10535211)
 
-![](docs/alrecon_home.gif)
+![](docs/pics/alrecon_home.gif)
 
 ### How to cite
 If you use `alrecon` please cite:

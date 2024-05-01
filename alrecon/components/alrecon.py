@@ -53,6 +53,8 @@ def generate_title():
 			  "Al-Recon. CT reconstruction made simple",
 			  "Al-Recon. It's business as usual"]
 
+	titles = ["Al-Recon. It has never been so easy"]
+
 	return titles[randint(0, len(titles) - 1)]
 
 def settings_file():
@@ -215,6 +217,17 @@ class alrecon:
 			self.check_path(self.recon_dir, True)
 			self.check_path(self.cor_dir, True)
 
+	def update_recon_dir(self):
+		# Update reconstruction directory with '_phase' string.
+		# USed when phase retrieval switch is toggled
+
+		if self.phase_object.value:
+			if '_phase' not in self.recon_dir.value:
+				self.recon_dir.set(self.recon_dir.value + '_phase')
+		else:
+			if '_phase' in self.recon_dir.value:
+				self.recon_dir.set(self.recon_dir.value[:-6])
+
 	def set_flats_file(self, dataset_path):
 		self.h5file_flats.set(dataset_path)
 
@@ -341,7 +354,7 @@ class alrecon:
 
 	def set_phase_params(self, filename):
 		try:
-			self.sdd.set(dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector_z')[0])
+			self.sdd.set(np.round(dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector_z')[0]))
 		except:
 			logger.warning("Cannot read detector_z value")
 
@@ -352,9 +365,31 @@ class alrecon:
 
 		try:
 			self.camera_pixel_size = dxchange.read_hdf5(filename, '/measurement/instrument/camera/pixel_size')[0]
-			self.magnification = dxchange.read_hdf5(filename, '/measurement/instrument/detection_system/objective/magnification')[0]
+			float(self.camera_pixel_size)
 		except:
-			logger.warning("Cannot read detector information (camera pixel_size; magnification)")
+			logger.warning("Cannot read camera pixel_size")
+			self.camera_pixel_size = 0
+
+		if self.camera_pixel_size == 0:
+			if 'PCO' in str(dxchange.read_hdf5(filename, '/measurement/instrument/camera/manufacturer')[0]):
+				self.camera_pixel_size = 6.5
+			elif 'FLIR' in str(dxchange.read_hdf5(filename, '/measurement/instrument/camera/manufacturer')[0]):
+				self.camera_pixel_size = 4.5
+
+		try:
+			detector = dxchange.read_hdf5(filename, '/measurement/instrument/detection_system/detector_name')[0]
+			if detector == 1:
+				lens_sel_x = dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector1_setup/lens_sel_x')[0]
+				if lens_sel_x < 0:
+					self.magnification = dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector1_setup/magnification1')[0]
+				elif lens_sel_x > 0:
+					self.magnification = dxchange.read_hdf5(filename, '/measurement/instrument/detector_motor_stack/detector1_setup/magnification2')[0]
+			elif detector == 2:
+				self.magnification = dxchange.read_hdf5(filename,'/measurement/instrument/detector_motor_stack/detector2_setup/magnification')[0]
+			elif detector == 3:
+				self.magnification = dxchange.read_hdf5(filename,'/measurement/instrument/detector_motor_stack/detector3_setup/magnification')[0]
+		except:
+			logger.warning("Cannot read detector information (detector type; magnification)")
 
 		self.pixelsize.set(0)
 		if not self.magnification == 0:
