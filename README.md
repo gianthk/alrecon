@@ -38,11 +38,11 @@ pip install -e .
 ```
 
 ## Usage
-### Run the `al-recon` [solara](https://solara.dev/api/file_browser) web application on your localhost
+### Run the `alrecon` [solara](https://solara.dev/api/file_browser) web application on your localhost
 ```commandline
 solara run alrecon.pages --host localhost
 ```
-### Run `al-recon` within [jupyter](https://solara.dev/api/file_browser)
+### Run `alrecon` within [jupyter](https://solara.dev/api/file_browser)
 1. Make sure that the `alrecon` virtual environment is activated and `ipykernel` installed:
 ```commandline
 conda activate alrecon
@@ -68,11 +68,10 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 ## Integration with Google Sheets
 - `Alrecon` allows you to keep a consistent log of all reconstruction jobs on an online master Google spreadsheet.
 - The integration uses [gspread](https://docs.gspread.org/en/v5.12.0/), a Python API for Google Sheets.
-- Follow these instructions to get 
 - You will need to setup your Google Cloud account, enable [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts), and create a Secret Key with read/write permission to your online master Google sheet. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets API.
 
 ## Use with [napari](https://napari.org/stable/)
-[napari](https://napari.org/stable/) is a pure Python powerfull viewer for multi-dimensional images. Until now, alrecon supports napari only when [running the app through Jupyter](#run-al-recon-within-jupyter).
+[napari](https://napari.org/stable/) is a powerful pure Python multi-dimensional image viewer. Alrecon supports napari only when [running the app through Jupyter](#run-al-recon-within-jupyter).
 
 ## Setup [ImageJ](https://imagej.net/software/fiji/) launcher
 To launch [ImageJ](https://imagej.net/software/fiji/) from the alrecon web app follow these steps:
