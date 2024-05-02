@@ -4,7 +4,7 @@ Pure Python Computed Tomography reconstruction web application. Built with [Sola
 [![GitHub license](https://img.shields.io/github/license/gianthk/alrecon)](https://github.com/gianthk/alrecon/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/701693534.svg)](https://zenodo.org/doi/10.5281/zenodo.10535211)
 
-![](docs/alrecon_home.gif)
+![alrecon gif](docs/pictures/alrecon_home.gif)
 
 ### How to cite
 If you use `alrecon` please cite:
@@ -76,7 +76,7 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 ## Setup [ImageJ](https://imagej.net/software/fiji/) launcher
 To launch [ImageJ](https://imagej.net/software/fiji/) from the alrecon web app follow these steps:
 1. Modify the path to your ImageJ executable in the alrecon general settings
-![alrecon imagej executable path setting](docs/pictures/alrecon_imagej.png)
+![alrecon imagej executable path setting](docs/pictures/alrecon_imagej-1.png)
 
 2. Copy the [FolderOpener_virtual.ijm](/imagej_macros/FolderOpener_virtual.ijm) ImageJ macro contained in `/alrecon/imagej_macros/` to the plugin folder of your ImageJ installation. On Linux this is something like `/opt/Fiji.app/macros/`.
 

@@ -243,7 +243,7 @@ def PhaseRetrieval():
     with solara.Card("Phase retrieval", subtitle="Paganin method", elevation=2, margin=0, classes=["my-2"]):
         with solara.Column():
             with solara.Column(style={"margin": "0px"}):
-                solara.Switch(label="Phase object", value=ar.phase_object, style={"height": "20px", "vertical-align": "top"})
+                solara.Switch(label="Phase object", value=ar.phase_object, style={"height": "20px", "vertical-align": "top"}, on_value=ar.update_recon_dir())
                 solara.Button(label="Retrieve phase", icon_name="mdi-play", on_click=lambda: ar.retrieve_phase(), disabled=not (ar.phase_object.value))
                 solara.ProgressLinear(ar.retrieval_status.value)
 
