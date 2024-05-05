@@ -68,7 +68,26 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 ## Integration with Google Sheets
 - `Alrecon` allows you to keep a consistent log of all reconstruction jobs on an online master Google spreadsheet.
 - The integration uses [gspread](https://docs.gspread.org/en/v5.12.0/), a Python API for Google Sheets.
-- You will need to setup your Google Cloud account, enable [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts), and create a Secret Key with read/write permission to your online master Google sheet. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets API.
+- You will need to set up your Google Cloud account, enable [Google Sheets API](https://developers.google.com/sheets/api/guides/concepts), and create a Secret Key with read/write permission to your online master Google sheet. Follow [these instructions](https://www.youtube.com/watch?v=hyUw-koO2DA) to setup the integration with Google Sheets API.
+
+### How it works
+1. Set up your Google Cloud account and a Secret Key with read/write permissions as described above
+2. Save your Secret Key and modify the alrecon settings file with the path to your Secret Key file
+3. Create or upload to your Google account a spreadsheet master. You can find a template in `resources/foo_master.xls`
+4. If the option `log to google master spreadsheet` is activated, each time you submit a job to the HPC cluster the reconstruction settings are logged as a new line of the master spreadsheet
+
+### HPC cluster integration
+`Alrecon` can generate reconstruction job files and submit them to the workers of a cluster, if this is available. The current integration assumes that the [slurm workload manager](https://slurm.schedmd.com/quickstart.html) is available on the host, and is designed for the [ID10-BEATS beamline](https://www.sesame.org.jo/beamlines/beats) of SESAME. Here are some general instructions on how to set up alrecon to work with your HPC facility:
+
+- The `remote_user` specified in the alrecon settings file must exist and have `ssh` access to the `remote_host`
+- [`slurm`](https://slurm.schedmd.com/quickstart.html) must be installed and running on the host
+- Slurm job file creation is handled by the `slurm.py` module in `alrecon/components`
+- An example slurm `.job` file is available in `resources/foo.job`
+- At ID-10 BEATS, we use a Python script named `BEATS_recon.py` to perform complete [TomoPy](https://tomopy.readthedocs.io/en/stable/) reconstruction pipelines. The script is available on the [BEATS_recon](https://github.com/SESAME-Synchrotron/BEATS_recon/tree/master/scripts/rum) repository. A copy of the script is in this repository in `resources/BEATS_recon.py`.
+- The `recon_script` specified in the settings file must contain the full path to your reconstruction script (`BEATS_recon.py` in our case). This must be accessible by the host. 
+- To adapt alrecon to a different reconstruction script or command:
+    - Start by taking a look at the `slurmjob` class in `alrecon/components/slurm.py`
+    - Create a new set_recon_command method following the example of `set_recon_command_beats`
 
 ## Use with [napari](https://napari.org/stable/)
 [napari](https://napari.org/stable/) is a powerful pure Python multi-dimensional image viewer. Alrecon supports napari only when [running the app through Jupyter](#run-al-recon-within-jupyter).

@@ -1,17 +1,17 @@
 # App settings:
-master_file: '/PETRA/SED/BEATS/SEM_6_recon/20235212/20235212_master.csv'
-master_spreadsheet: '20235212_master'
-gspread_key: '/home/beatsbs/PycharmProjects/alrecon/keys/alrecon-e50b00b0b6f6.json'
+master_file: ''
+master_spreadsheet: 'foo_master'
+gspread_key: '/home/beatsbs/PycharmProjects/alrecon/keys/foo.json'
 gspread_logging: True
-experiment_dir: "/PETRA/SED/BEATS/SEM_6/20235212/ExpData"
-experiment_name: '20235212'
+experiment_dir: "/PETRA/SED/BEATS/SEM_6/foo/ExpData"
+experiment_name: 'foo'
 inhouse: False
 h5file: ''
 h5file_flats: ''
 h5file_darks: ''
 dataset: '<dataset>'
-recon_dir: '/PETRA/SED/BEATS/SEM_6_recon/20235212/recon'
-cor_dir: '/PETRA/SED/BEATS/SEM_6_recon/20235212/cor'
+recon_dir: '/PETRA/SED/BEATS/SEM_6_recon/foo/recon'
+cor_dir: '/PETRA/SED/BEATS/SEM_6_recon/foo/cor'
 auto_complete: True
 imagej_launcher: '/opt/Fiji.app/ImageJ-linux64'
 # General settings

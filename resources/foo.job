@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --job-name=foo_%j
+#SBATCH --output=foo_%j.out
+#SBATCH --error=foo_%j.err
+#SBATCH --ntasks=11
+#SBATCH --cpus-per-task=8
+#SBATCH --time=60
+#SBATCH --partition=gpu
+#SBATCH --nodelist=gpunode1
+#SBATCH --gres=gpu:1
+#SBATCH --mem-per-cpu=2G
+
+# Modules section:
+ml load anaconda/tomopy
+
+# Variables section:
+export NUMEXPR_MAX_THREADS=10
+
+python /PETRA/SED/BEATS/IH/scratch/scripts/BEATS_recon.py /PETRA/SED/BEATS/IH/2024/melon_bead/melon_bead.h5 --recon_dir /PETRA/SED/BEATS/IH/2024_recon/melon_bead/recon --work_dir /PETRA/SED/BEATS/IH/2024_recon/melon_bead --ncore 8 --algorithm gridrec --360 --overlap 1268 --rotside right --nchunk 100 --sino 258 1702 1 --circ_mask --circ_mask_ratio 0.8 --midplanes
