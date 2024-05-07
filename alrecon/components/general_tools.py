@@ -1,5 +1,7 @@
 import os
+from os import getlogin, path
 import pandas as pd
+
 
 def collect_recon_paths(root_dir):
     """
@@ -39,8 +41,10 @@ def collect_recon_paths(root_dir):
 
 from pathlib import Path
 
+
 def get_project_root() -> Path:
     return str(Path(__file__).parent.parent)
+
 
 def settings_file():
     # check if user settings file exists
