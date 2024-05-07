@@ -13,6 +13,7 @@ font = {"weight": "normal", "size": 8}
 matplotlib.rc("font", **font)
 
 from alrecon.components import alrecon, viewers
+from alrecon.components.general_tools import collect_recon_paths
 
 ar = alrecon.alrecon()
 view = viewers.viewers()
@@ -665,27 +666,25 @@ def UpdatePandasTable(master_updated):
         solara.DataFrame(master_local, items_per_page=50, cell_actions=cell_actions)  # , scrollable=True
 
 
-@solara.component
-def UpdatePandasTable_dirs(master_updated):
-    """
-    a react component is used to update the table
-    """
-    # create a local dataframe for display; remove all NaNs from it
-    master_local = ar.master.fillna("")
+# @solara.component
+# def UpdatePandasTable_dirs(master_updated):
+#     """
+#     a react component is used to update the table
+#     """
+#     # create a local dataframe for display; remove all NaNs from it
+#     master_local = ar.master.fillna("")
+#
+#     cell, set_cell = solara.use_state(cast(Dict[str, Any], {}))
+#
+#     def on_action_cell(column, row_index):
+#         set_cell(dict(column=column, row_index=row_index))
+#         view.imagejView(ImageJ_exe_stack, str(master_local["recon_dir"][row_index]))
+#
+#     cell_actions = [solara.CellAction(icon="mdi-eye", name="Inspect", on_click=on_action_cell)]
+#
+#     with solara.Card("Completed reconstructions", margin=0, classes=["my-2"]):
+#         solara.DataFrame(master_local, items_per_page=50, cell_actions=cell_actions)  # , scrollable=True
 
-    cell, set_cell = solara.use_state(cast(Dict[str, Any], {}))
-
-    def on_action_cell(column, row_index):
-        set_cell(dict(column=column, row_index=row_index))
-        view.imagejView(ImageJ_exe_stack, str(master_local["recon_dir"][row_index]))
-
-    cell_actions = [solara.CellAction(icon="mdi-eye", name="Inspect", on_click=on_action_cell)]
-
-    with solara.Card("Completed reconstructions", margin=0, classes=["my-2"]):
-        solara.DataFrame(master_local, items_per_page=50, cell_actions=cell_actions)  # , scrollable=True
-
-
-import functools
 
 
 @solara.component
@@ -704,40 +703,6 @@ def ReconList(master_updated, pandastable=True):
         ar.read_gspread_master()
         master_updated.value += 1
 
-    def collect_recon_paths(root_dir):
-        """
-        could move this function to the/a utils directory
-        """
-
-        dict_recon_paths = {}
-
-        for dirpath, dirnames, filenames in os.walk(root_dir):
-            # Temporarily store directories that match 'recon'
-            temp_recon_dirs = [d for d in dirnames if d.startswith("recon")]
-
-            # For each directory that starts with 'recon', find the first parent that doesn't
-            for dirname in temp_recon_dirs:
-                full_path = os.path.join(dirpath, dirname)
-                # Split the path to get all parts
-                parts = full_path.split(os.sep)
-                # Find the first parent directory not starting with 'recon'
-                for part in reversed(parts[:-1]):
-                    if not part.startswith("recon"):
-                        if part not in dict_recon_paths:
-                            dict_recon_paths[part] = []
-                        dict_recon_paths[part].append(full_path)
-                        break
-
-            # Ensure we still traverse into subdirectories of 'recon'
-            # reference to dirnames
-            dirnames[:] = [d for d in dirnames if d in temp_recon_dirs or not d.startswith("recon")]
-            print("dirnames", dirnames)
-
-        df_rows = [(key, path) for key, paths in dict_recon_paths.items() for path in paths]
-        df = pd.DataFrame(df_rows, columns=["Parent Directory", "recon_dir"])
-
-        return df
-
     def search_for_recons():
         """
         We update here the ar.master, which is self.master in read_gspread_master, directly.
@@ -752,32 +717,33 @@ def ReconList(master_updated, pandastable=True):
     def load_sheet_or_crawl():
         pass
 
-    selected_button = "dirs"
+    #selected_button = "dirs"
 
     ### perhaps a function that lets us select the right opener?
 
     with solara.Card("Master spreadsheet", margin=0, classes=["my-2"]):
         with solara.Row():
             solara.Button(
-                label="Refresh from spreadsheet", icon_name="mdi-refresh", on_click=read_gspread_and_update_state, disabled=not (ar.gspread_logging.value)
-            )
-            solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False, disabled=not (ar.gspread_logging.value))
-        with solara.Row():
-            solara.Button(
-                label="Refresh from recon dir (currently, this will take two times os.path.dirname)",
+                label="Refresh from recon dir",
+                ### ATTENTION: (currently, this will take two times os.path.dirname)
                 icon_name="mdi-refresh",
                 on_click=search_for_recons,
                 disabled=False,
             )
-
             solara.InputText("refresh from recon dir", value=ar.recon_dir, continuous_update=False, disabled=False)
             # solara.InputText("refresh from recon dir", value=ar.recon_root, continuous_update=False, disabled=False)
 
+        with solara.Row():
+            solara.Button(
+                label="Refresh from spreadsheet", icon_name="mdi-refresh", on_click=read_gspread_and_update_state, disabled=not (ar.gspread_logging.value)
+            )
+            solara.InputText("Google master spreadsheet", value=ar.master_spreadsheet, continuous_update=False, disabled=not (ar.gspread_logging.value))
+
     if pandastable:
-        if selected_button == "spreadsheet":
-            UpdatePandasTable(master_updated.value)
-        if selected_button == "dirs":
-            UpdatePandasTable_dirs(master_updated.value)
+        # if selected_button == "spreadsheet":
+        UpdatePandasTable(master_updated.value)
+        # if selected_button == "dirs":
+        # UpdatePandasTable_dirs(master_updated.value)
     else:
         UpdateTable(master_updated.value)
 

@@ -39,12 +39,11 @@ logger_dxchange.setLevel(logging.CRITICAL)
 
 from alrecon.components import gspreadlog, slurm
 from alrecon.components.recon_utils import touint
+from alrecon.components.general_tools import settings_file
 
-from pathlib import Path
 
-
-def get_project_root() -> Path:
-    return str(Path(__file__).parent.parent)
+# def get_project_root() -> Path:
+#     return str(Path(__file__).parent.parent)
 
 
 def generate_title():
@@ -63,15 +62,15 @@ def generate_title():
     return titles[randint(0, len(titles) - 1)]
 
 
-def settings_file():
-    # check if user settings file exists
-    user_settings_file = get_project_root() + "/settings/" + getlogin() + ".yml"
-
-    if path.isfile(user_settings_file):
-        return user_settings_file
-    else:
-        return get_project_root() + "/settings/default.yml"
-        # return get_project_root() + "/settings/default_test_locally.yml"
+# def settings_file():
+#     # check if user settings file exists
+#     user_settings_file = get_project_root() + "/settings/" + getlogin() + ".yml"
+#
+#     if path.isfile(user_settings_file):
+#         return user_settings_file
+#     else:
+#         return get_project_root() + "/settings/default.yml"
+#         # return get_project_root() + "/settings/default_test_locally.yml"
 
 
 class alrecon:
