@@ -1,7 +1,7 @@
 """
 This is the main class of Al-recon: a Computed Tomography reconstruction web application running on solara.
 For more information, visit the project homepage:
-	https://github.com/gianthk/alrecon
+    https://github.com/gianthk/alrecon
 """
 
 __author__ = ["Gianluca Iori"]
@@ -15,8 +15,10 @@ __email__ = "gianthk.iori@gmail.com"
 
 # import os.path
 
-import yaml
-from os import getlogin, path
+# import yaml
+
+
+from os import path
 import os
 import subprocess
 from random import randint
@@ -39,11 +41,7 @@ logger_dxchange.setLevel(logging.CRITICAL)
 
 from alrecon.components import gspreadlog, slurm
 from alrecon.components.recon_utils import touint
-from alrecon.components.general_tools import settings_file
-
-
-# def get_project_root() -> Path:
-#     return str(Path(__file__).parent.parent)
+from alrecon.components.general_tools import settings_file, load_app_settings, save_app_settings, init_settings
 
 
 def generate_title():
@@ -60,17 +58,6 @@ def generate_title():
     titles = ["Al-Recon. It has never been so easy"]
 
     return titles[randint(0, len(titles) - 1)]
-
-
-# def settings_file():
-#     # check if user settings file exists
-#     user_settings_file = get_project_root() + "/settings/" + getlogin() + ".yml"
-#
-#     if path.isfile(user_settings_file):
-#         return user_settings_file
-#     else:
-#         return get_project_root() + "/settings/default.yml"
-#         # return get_project_root() + "/settings/default_test_locally.yml"
 
 
 class alrecon:
@@ -126,7 +113,7 @@ class alrecon:
         self.stitching_status = solara.reactive(False)
 
         self.master = pd.DataFrame()
-        # 		self.master = pd.DataFrame({'dataset': ['bee_yazeed-20231001T170032', 'fiber_test_fast-20230731T185659'], 'COR': [1280, 2000], 'recon_dir': ['/tmp/Yazeed/wasp/bee_yazeed-20231001T170032/recon_phase_alpha0.0002',
+        #       self.master = pd.DataFrame({'dataset': ['bee_yazeed-20231001T170032', 'fiber_test_fast-20230731T185659'], 'COR': [1280, 2000], 'recon_dir': ['/tmp/Yazeed/wasp/bee_yazeed-20231001T170032/recon_phase_alpha0.0002',
         # '/home/gianthk/Data/BEATS/IH/scratch/pippo/recon']})
         self.attempt_glog_init()
 
@@ -271,26 +258,11 @@ class alrecon:
         self.reconstructed.set(False)
 
     def init_settings(self, filename):
-        with open(filename, "r") as file_object:
-            self.settings_file = solara.reactive(path.basename(filename))
-            self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
-            self.check_settings_paths()
-
-            # initialize app settings from YAML file
-            for key, val in self.settings.items():
-                exec("self." + key + "=solara.reactive(val)")
-
+        init_settings(self, filename)
         logger.info("Init settings file: {0}".format(filename))
 
     def load_app_settings(self, filename):
-        with open(filename, "r") as file_object:
-            self.settings_file.set(path.basename(filename))
-            self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
-
-            # some app settings
-            for key, val in self.settings.items():
-                exec("self." + key + ".set(val)")
-
+        load_app_settings(self, filename)
         logger.info("Loaded settings file: {0}".format(filename))
 
     def update_settings_dictionary(self):
@@ -329,12 +301,7 @@ class alrecon:
         self.settings["Data_max"] = self.Data_max.value
 
     def save_app_settings(self, filename):
-        self.update_settings_dictionary()
-
-        # write YAML settings file
-        with open(filename, "w") as file:
-            yaml.dump(self.settings, file)
-
+        save_app_settings(self, filename)
         logger.info("Saved settings file: {0}".format(filename))
 
     # H5 readers

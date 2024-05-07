@@ -2,6 +2,8 @@ import os
 from os import getlogin, path
 import pandas as pd
 
+import solara
+
 
 def collect_recon_paths(root_dir):
     """
@@ -55,3 +57,57 @@ def settings_file():
     else:
         return get_project_root() + "/settings/default.yml"
         # return get_project_root() + "/settings/default_test_locally.yml"
+
+
+# ===== # ====== # INPUT AND OUTPUT
+
+import yaml
+
+
+class SafeLoaderIgnoreUnknown(yaml.SafeLoader):
+    pass
+
+
+# Define a function that simply ignores complex tags
+def ignore_complex_objects(loader, node):
+    return None  # We're ignoring any complex objects
+
+
+# Register the function to ignore tags
+SafeLoaderIgnoreUnknown.add_constructor(None, ignore_complex_objects)
+
+
+def save_app_settings(self, filename):
+    self.update_settings_dictionary()
+
+    print(self.settings)
+
+    # write YAML settings file
+    with open(filename, "w") as file:
+        yaml.dump(self.settings, file)
+
+
+def init_settings(self, filename):
+    with open(filename, "r") as file_object:
+        self.settings_file = solara.reactive(path.basename(filename))
+        self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
+        self.check_settings_paths()
+
+        # initialize app settings from YAML file
+        for key, val in self.settings.items():
+            exec("self." + key + "=solara.reactive(val)")
+
+
+def load_app_settings(self, filename):
+    with open(filename, "r") as file_object:
+        self.settings_file.set(path.basename(filename))
+        # self.settings = yaml.load(file_object, Loader=yaml.SafeLoader)
+        self.settings = yaml.load(file_object, Loader=SafeLoaderIgnoreUnknown)
+
+        # some app settings
+        for key, value in self.settings.items():
+            try:
+                exec("self." + key + ".set(value)")
+            except Exception as e:
+                print(e)
+                print(key, "    ", value)
