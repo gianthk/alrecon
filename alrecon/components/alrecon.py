@@ -411,7 +411,7 @@ class alrecon:
         logger.info("Sinogram: normalized.")
 
     def set_proj0(self):
-        tmp, _, _, _ = dxchange.read_aps_32id(self.h5file.value, exchange_rank=0, proj=(0, 1, 1))
+        tmp, _, _, _ = dxchange.read_sesame_beats(self.h5file.value, exchange_rank=0, proj=(0, 1, 1))
         self.proj0 = tmp[0, :, :]
 
     def load_and_normalize(self, filename, filename_flats="", filename_darks=""):
@@ -434,7 +434,7 @@ class alrecon:
         if not self.sino_range_enable.value:
             self.sino_range.set([0, self.sino_rows.value])
 
-        self.projs, self.flats, self.darks, _ = dxchange.read_aps_32id(
+        self.projs, self.flats, self.darks, self.theta = dxchange.read_sesame_beats(
             filename,
             exchange_rank=0,
             sino=(self.sino_range.value[0], self.sino_range.value[1], 1),
@@ -442,12 +442,10 @@ class alrecon:
         )
 
         if (self.separate_flats.value) & (filename_flats != ""):
-            _, self.flats, _, _ = dxchange.read_aps_32id(filename_flats, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
+            _, self.flats, _, _ = dxchange.read_sesame_beats(filename_flats, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
 
         if (self.separate_darks.value) & (filename_darks != ""):
-            _, _, self.darks, _ = dxchange.read_aps_32id(filename_darks, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
-
-        self.theta = np.radians(dxchange.read_hdf5(filename, "exchange/theta", slc=((self.proj_range.value[0], self.proj_range.value[1], 1),)))
+            _, _, self.darks, _ = dxchange.read_sesame_beats(filename_darks, exchange_rank=0, sino=(self.sino_range.value[0], self.sino_range.value[1], 1))
 
         self.loaded_file.set(True)
 
