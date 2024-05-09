@@ -5,6 +5,28 @@ import pandas as pd
 import solara
 
 
+import re
+
+
+def sorted_alphanum(listOfStrings):
+    """Sorts the given iterable in the way that is expected. Converts each given list to a list of strings
+
+    Required arguments:
+    listOfStrings -- The iterable to be sorted.
+
+    """
+
+    listOfStrings = [str(i) for i in listOfStrings]
+
+    def convert(text):
+        return int(text) if text.isdigit() else text
+
+    def alphanum_key(key):
+        return [convert(c) for c in re.split("([0-9]+)", key)]
+
+    return sorted(listOfStrings, key=alphanum_key)
+
+
 def collect_recon_paths(root_dir):
     """
     check for .Trash or empty dirs?
@@ -35,7 +57,13 @@ def collect_recon_paths(root_dir):
         dirnames[:] = [d for d in dirnames if d in temp_recon_dirs or not d.startswith("recon")]
         # print("dirnames", dirnames)
 
-    df_rows = [(key, path) for key, paths in dict_recon_paths.items() for path in paths]
+    # sorting keys alphanumerically:
+
+    keys = sorted_alphanum(dict_recon_paths.keys())
+
+    df_rows = [(key, path) for key in keys for path in sorted_alphanum(dict_recon_paths.get(key))]
+
+    # df_rows = [(key, path) for key, paths in dict_recon_paths.items() for path in paths]
     df = pd.DataFrame(df_rows, columns=["Parent Directory", "recon_dir"])
 
     return df
