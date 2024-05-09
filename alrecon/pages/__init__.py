@@ -101,6 +101,9 @@ def ProcessExtendedFOVScan():
                 OverlapInspect()
                 StitchSinogram()
 
+            with solara.Card(subtitle="Example of OVERLAP optimization", margin=0, classes=["my-2"], style={"width": "1500px"}):
+                image_path = Path("./docs/pictures/overlap_optimization.png").as_posix()
+                solara.Image(image_path)  # , width='1500px'
 
 @solara.component
 def OverlapInspect():
