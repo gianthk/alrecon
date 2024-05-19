@@ -30,6 +30,9 @@ conda activate alrecon-base
 > If you already have a destination virtual environment for alrecon, you can install manually the requirements listed in file [alrecon.yml](envs/alrecon-base.yml).
 
 > [!NOTE]
+> You can install [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) if you have conda not on your computer and have no desire for a "fully-fledged" anaoonda environment (to date, the tomopy package is only available for conda). There is an option for a "Quick command line install", which runs the complete installation without having you to click. In case of doubt, you can omit the last step `~/miniconda3/bin/conda init bash` and activate conda by `source miniconda3/bin/activate`.
+
+> [!NOTE]
 > To use TomoPy with CUDA features, install TomoPy from conda following [these instructions](https://tomopy.readthedocs.io/en/stable/install.html).
 
 3. Build the `alrecon` app:
