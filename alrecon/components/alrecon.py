@@ -341,7 +341,7 @@ class alrecon:
 
         try:
             self.camera_pixel_size = dxchange.read_hdf5(filename, "/measurement/instrument/camera/pixel_size")[0]
-            float(self.camera_pixel_size)
+            self.camera_pixel_size = float(self.camera_pixel_size)
         except:
             logger.warning("Cannot read camera pixel_size")
             self.camera_pixel_size = 0
