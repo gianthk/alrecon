@@ -367,10 +367,13 @@ class alrecon:
         except:
             logger.warning("Cannot read detector information (detector type; magnification)")
 
-        self.pixelsize.set(0)
         if not self.magnification == 0:
             if not isnan(self.camera_pixel_size / self.magnification):
                 self.pixelsize.set(self.camera_pixel_size / self.magnification)
+            else:
+                self.pixelsize.set(0.)
+        else:
+            self.pixelsize.set(0.)
 
     def sinogram(self):
         # Return sinogram for pre-processing
