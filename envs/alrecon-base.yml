@@ -10,7 +10,6 @@ dependencies:
       - pandas
       - tifffile
       - pypng
-      - plotly
       - matplotlib
       - gspread
       - gspread-dataframe

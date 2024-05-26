@@ -4,9 +4,9 @@ For more information, visit the project homepage:
     https://github.com/gianthk/alrecon
 """
 
-__author__ = ["Gianluca Iori"]
+__author__ = ["Gianluca Iori", "Philipp Hans"]
 __date_created__ = "2023-08-01"
-__date__ = "2024-03-19"
+__date__ = "2024-05-25"
 __copyright__ = "Copyright (c) 2024, SESAME"
 __docformat__ = "restructuredtext en"
 __license__ = "MIT"
@@ -55,7 +55,7 @@ def generate_title():
         "Al-Recon. It's business as usual",
     ]
 
-    titles = ["Al-Recon. It has never been so easy"]
+    # titles = ["Al-Recon. It has never been so easy"]
 
     return titles[randint(0, len(titles) - 1)]
 
@@ -65,6 +65,9 @@ class alrecon:
         self.algorithms = ["gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra"]
         self.averagings = ["mean", "median"]
         self.stripe_removal_methods = ["remove_dead_stripe", "remove_large_stripe", "remove_stripe_based_sorting", "remove_all_stripe"]
+        self.hist_speeds_string = ["slow", "medium", "fast", "very fast"]
+        self.hist_steps = [1, 5, 10, 20]
+
         self.nodes = ["rum"]
         self.title = generate_title()
         self.init_settings(settings_file())
@@ -542,11 +545,13 @@ class alrecon:
         self.hist_count.set(self.hist_count.value + 1)
 
         if (self.Data_min.value == 0) & (self.Data_max.value == 0):
-            recon_subset = self.recon[0::10, 0::10, 0::10]
+            step = self.hist_steps[self.hist_speeds_string.index(self.hist_speed.value)]
+            recon_subset = tomopy.circ_mask(self.recon[0::step, 0::step, 0::step], axis=0, ratio=0.9, val=0)
+            recon_subset = recon_subset[recon_subset != 0]
 
             # Estimate GV range from data histogram (0.1 % and 99.9 % quantiles)
             # need to add a circular mask before hist
-            [range_min, range_max] = np.quantile(recon_subset.ravel(), [0.0001, 0.9999])
+            [range_min, range_max] = np.quantile(recon_subset, [0.001, 0.999])
             logger.info("0.01% quantile: {0}".format(range_min))
             logger.info("99.99% quantile: {0}".format(range_max))
             self.Data_min.set(round(range_min, 5))
