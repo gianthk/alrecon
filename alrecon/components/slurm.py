@@ -32,6 +32,13 @@ class slurmjob:
         SBATCH settings and module load call are specific to the HPC cluster rum.sesame.org.jo.
         If required for integration with a different cluster, for example if you different module load statements, you should start by creating a copy of this method.
         '''
+
+        dir_job_file = os.path.dirname(self.job_file)
+        if not os.path.isdir(dir_job_file):
+            logging.warning('Directory where the job fioe should be place does not exist. Will create it: {}'.format(dir_job_file))
+            os.makedirs(dir_job_file, exist_ok=True)
+            os.chmod(dir_job_file, 0o0777)
+
         with open(self.job_file, "w") as fh:
             fh.writelines("#!/bin/bash\n")
             fh.writelines("#SBATCH --job-name={0}_%j\n".format(self.job_name))

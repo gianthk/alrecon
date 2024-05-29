@@ -6,7 +6,7 @@ For more information, visit the project homepage:
 
 __author__ = ["Gianluca Iori", "Philipp Hans"]
 __date_created__ = "2023-08-01"
-__date__ = "2024-05-25"
+__date__ = "2024-05-29"
 __copyright__ = "Copyright (c) 2024, SESAME"
 __docformat__ = "restructuredtext en"
 __license__ = "MIT"
@@ -52,13 +52,13 @@ def generate_title():
         "Al-Recon. The CT reconstruction GUI",
         "Al-Recon. It has never been so easy",
         "Al-Recon. CT reconstruction made simple",
-        "Al-Recon. It's business as usual",
+        "Al-Recon. So good",
+        "Al-Recon. It's business time",
     ]
 
     # titles = ["Al-Recon. It has never been so easy"]
 
     return titles[randint(0, len(titles) - 1)]
-
 
 class alrecon:
     def __init__(self):
@@ -98,6 +98,7 @@ class alrecon:
         self.magnification = 0
 
         self.sino_range_enable = solara.reactive(True)
+        self.sino_range_backup = [1000, 1010]
         self.proj_range_enable = solara.reactive(False)
         self.loaded_file = solara.reactive(False)
         self.cor_status = solara.reactive(False)
@@ -234,25 +235,33 @@ class alrecon:
         self.h5file_darks.set(dataset_path)
 
     def set_file_and_proj(self, dataset_path):
+        # retrieve information from .H5 file
         self.h5file.set(dataset_path)
         self.set_n_proj(dataset_path)
         self.set_sino_rows(dataset_path)
         self.set_exp_time(dataset_path)
         self.set_phase_params(dataset_path)
 
+        # update projection range based on the number of projections
         if self.proj_range_enable.value:
             if self.proj_range.value[1] > self.n_proj.value:
                 self.proj_range.set([0, self.n_proj.value])
         else:
             self.proj_range.set([0, self.n_proj.value])
 
+        # update sinogram range based on sinogram size
+        self.sino_range_enable.set(True)
+        self.sino_range.set(self.sino_range_backup)
+
         if self.sino_range.value[1] > self.sino_rows.value:
             self.sino_range.set([0, self.sino_rows.value])
 
+        # set dataset and output dirs based on selection
         self.dataset.set(path.splitext(path.basename(str(dataset_path)))[0])
         self.set_output_dirs()
         self.set_proj0()
 
+        # reset alrecon process status flags
         self.loaded_file.set(False)
         self.stitched.set(False)
         self.stripe_removed.set(False)
@@ -266,6 +275,10 @@ class alrecon:
 
     def load_app_settings(self, filename):
         load_app_settings(self, filename)
+
+        # store a copy of the sinogram range
+        self.sino_range_backup = self.sino_range.value
+
         logger.info("Loaded settings file: {0}".format(filename))
 
     def update_settings_dictionary(self):
