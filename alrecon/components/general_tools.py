@@ -7,6 +7,12 @@ import solara
 
 import re
 
+from pathlib import Path
+
+
+def get_project_root() -> Path:
+    return str(Path(__file__).parent.parent)
+
 
 def sorted_alphanum(listOfStrings):
     """Sorts the given iterable in the way that is expected. Converts each given list to a list of strings
@@ -27,7 +33,7 @@ def sorted_alphanum(listOfStrings):
     return sorted(listOfStrings, key=alphanum_key)
 
 
-def collect_recon_paths(root_dir):
+def collect_recon_paths(root_dir, search_string):
     """
     check for .Trash or empty dirs?
     could be improved for speed, I have the impression that "it walks too much"
@@ -37,7 +43,7 @@ def collect_recon_paths(root_dir):
 
     for dirpath, dirnames, filenames in os.walk(root_dir):
         # Temporarily store directories that match 'recon'
-        temp_recon_dirs = [d for d in dirnames if d.startswith("recon")]
+        temp_recon_dirs = [d for d in dirnames if d.startswith(search_string)]
 
         # For each directory that starts with 'recon', find the first parent that doesn't
         for dirname in temp_recon_dirs:
@@ -54,26 +60,103 @@ def collect_recon_paths(root_dir):
 
         # Ensure we still traverse into subdirectories of 'recon'
         # reference to dirnames
-        dirnames[:] = [d for d in dirnames if d in temp_recon_dirs or not d.startswith("recon")]
+        dirnames[:] = [d for d in dirnames if d in temp_recon_dirs or not d.startswith(search_string)]
         # print("dirnames", dirnames)
 
-    # sorting keys alphanumerically:
+    return dict_recon_paths
 
-    keys = sorted_alphanum(dict_recon_paths.keys())
 
-    df_rows = [(key, path) for key in keys for path in sorted_alphanum(dict_recon_paths.get(key))]
+def get_dict_files_with_ending(source_dir, file_ending):
+    found_files = [os.path.join(d, x) for d, dirs, files in os.walk(source_dir) for x in files if x.endswith(file_ending)]
+    dict_found_files = {os.path.splitext(os.path.basename(file))[0]: file for file in found_files}
+    return dict_found_files
 
-    # df_rows = [(key, path) for key, paths in dict_recon_paths.items() for path in paths]
-    df = pd.DataFrame(df_rows, columns=["Parent Directory", "recon_dir"])
+
+def message_if_list_empty(key, should_be_a_list):
+    len_of_list = len(should_be_a_list)
+    if len_of_list > 0:
+        keys_corresponding_to_path = [""] * len_of_list
+        keys_corresponding_to_path[0] = key
+        return [keys_corresponding_to_path, should_be_a_list]
+    else:
+        return [[key], ["no reconstructions so far"]]
+        # return [[key], ["      "]]
+
+
+def return_number_of_files_in_folder(path):
+    if os.path.isdir(path):
+        return len(os.listdir(path))
+    return ""
+
+
+def does_its_path_contain(list_of_strings, path):
+    """
+    list_of_strings must be a list!!!!
+    """
+
+    for string_ in list_of_strings:
+        if string_ in path:
+            return "completed"
+    return "     "
+
+
+def provide_unified_data_frame_from_dicts(dict_exp_files, dict_recon_paths, list_of_marker_for_completed_recons):
+    """
+    should contain:
+    exp name1 - recon name - elements in folder - paths
+                recon name - elements in folder - paths
+                recon name - elements in folder - paths
+    exp name2 - recon name - elements in folder - paths
+                recon name - elements in folder - paths
+
+    # für jeden key der experimente brauchen wir mindestens einen recon gegenwert, ansonsten schreiben wir ein "missing oä". alle anderen kommen in den key "others"
+    """
+
+    keys_exp = sorted_alphanum(dict_exp_files.keys())
+
+    df_rows = [
+        (key_corresponding_to_path, return_number_of_files_in_folder(path), path, does_its_path_contain(list_of_marker_for_completed_recons, path))
+        for key in keys_exp
+        for key_corresponding_to_path, path in zip(*message_if_list_empty(key, sorted_alphanum(dict_recon_paths.pop(key, []))))
+    ]
+
+    remaining_datasets = dict_recon_paths.values()  # unclassified
+
+    def flatten_concatenation(list_of_lists):
+        flat_list = []
+        for row in list_of_lists:
+            flat_list += row
+        return flat_list
+
+    remaining_datasets = flatten_concatenation(remaining_datasets)
+
+    df_rows_remaining = [
+        (key_corresponding_to_path, return_number_of_files_in_folder(path), path, does_its_path_contain(list_of_marker_for_completed_recons, path))
+        for key_corresponding_to_path, path in zip(*message_if_list_empty("others", sorted_alphanum(remaining_datasets)))
+    ]
+
+    df_rows += df_rows_remaining
+
+    df = pd.DataFrame(df_rows, columns=["exp dataset", "number_of_files", "recon_dir", "recon complete?"])
 
     return df
 
 
-from pathlib import Path
+def create_dataoverview_BEATS(exp_dir, recon_dir, list_of_marker_for_completed_recons=["_finished_reconstructions"]):
+    dict_exp_files = get_dict_files_with_ending(source_dir=exp_dir, file_ending=".h5")
+
+    dict_recon_paths = collect_recon_paths(root_dir=recon_dir, search_string="recon")
+
+    df = provide_unified_data_frame_from_dicts(dict_exp_files, dict_recon_paths, list_of_marker_for_completed_recons)
+
+    return df
 
 
-def get_project_root() -> Path:
-    return str(Path(__file__).parent.parent)
+# ==== # ==== # ====
+# ==== # ==== # ====
+# ==== # ==== # ====
+# ==== # ==== # ====
+# ==== # ==== # ====
 
 
 def settings_file():

@@ -13,7 +13,9 @@ font = {"weight": "normal", "size": 8}
 matplotlib.rc("font", **font)
 
 from alrecon.components import alrecon, viewers
-from alrecon.components.general_tools import collect_recon_paths
+
+# from alrecon.components.general_tools import collect_recon_paths
+from alrecon.components.general_tools import create_dataoverview_BEATS
 
 ar = alrecon.alrecon()
 view = viewers.viewers()
@@ -104,6 +106,7 @@ def ProcessExtendedFOVScan():
             with solara.Card(subtitle="Example of OVERLAP optimization", margin=0, classes=["my-2"], style={"width": "1500px"}):
                 image_path = Path("./docs/pictures/overlap_optimization.png").as_posix()
                 solara.Image(image_path)  # , width='1500px'
+
 
 @solara.component
 def OverlapInspect():
@@ -689,7 +692,6 @@ def UpdatePandasTable(master_updated):
 #         solara.DataFrame(master_local, items_per_page=50, cell_actions=cell_actions)  # , scrollable=True
 
 
-
 @solara.component
 def ReconList(master_updated, pandastable=True):
     """
@@ -709,18 +711,27 @@ def ReconList(master_updated, pandastable=True):
     def search_for_recons():
         """
         We update here the ar.master, which is self.master in read_gspread_master, directly.
+        The function "create_dataoverview_BEATS" takes the experiment directory andr the recon directory
+        and returns an overview of experiments vs reconstructions vs "unrelated existing objects"
+
+        ATTENTION: The following is somehow a "hack"
+
+        search_root_recons = os.path.dirname(os.path.dirname(ar.recon_dir.value))
+
+        since this is only possible because we know that at BEATS the 'root of recon' is two levels up.
+        But in reality we must fix that by a seperate variable! e.g. by having ar RECON_ROOT
         """
 
-        # this is also only possible because we know at BEATS that the 'root' is two levels up.
-        # But in reality we must fix that by a seperate variable! e.g. by having a RECON_ROOT
-        search_root = os.path.dirname(os.path.dirname(ar.recon_dir.value))
-        ar.master = collect_recon_paths(search_root)
+        search_root_experiments = ar.experiment_dir.value
+        search_root_recons = os.path.dirname(os.path.dirname(ar.recon_dir.value))
+        # ar.master = collect_recon_paths(search_root)
+        ar.master = create_dataoverview_BEATS(exp_dir=search_root_experiments, recon_dir=search_root_recons)
         master_updated.value += 1
 
     def load_sheet_or_crawl():
         pass
 
-    #selected_button = "dirs"
+    # selected_button = "dirs"
 
     ### perhaps a function that lets us select the right opener?
 
