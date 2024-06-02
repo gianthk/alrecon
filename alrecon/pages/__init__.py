@@ -224,6 +224,7 @@ def FileSelect():
 
 
 def FlatsSelect():
+    solara.Select("Sinogram averaging", value=ar.averaging, values=ar.averagings)
     with solara.Row():
         solara.Switch(label="Separate flat fields", value=ar.separate_flats, style={"height": "20px", "vertical-align": "bottom"})  # on_value=set_n_proj()
         solara.Switch(label="Scale flats based on SR current", value=ar.flats_scale, disabled=not (ar.separate_flats.value))
