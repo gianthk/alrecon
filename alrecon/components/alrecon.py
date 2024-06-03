@@ -77,6 +77,7 @@ class alrecon:
         self.theta = np.zeros(1)
         self.init_3Darrays()
         self.proj0 = np.zeros([0, 0])
+        self.proj1 = np.zeros([0, 0])
 
         self.dataset = solara.reactive("")
         self.n_proj = solara.reactive(10001)
@@ -90,6 +91,8 @@ class alrecon:
         self.COR_guess = solara.reactive(1280)
         self.COR_algorithms = ["Vo", "TomoPy"]
         self.COR_slice_ind = solara.reactive(1000)  # int(projs.shape[0]/2)
+        self.overlap_guess = solara.reactive(200)
+        self.overlap_tol = solara.reactive(0.5)
         self.recon_counter = solara.reactive(0)
         self.Data_min = solara.reactive(0)
         self.Data_max = solara.reactive(0)
@@ -429,9 +432,13 @@ class alrecon:
         self.normalized.set(True)
         logger.info("Sinogram: normalized.")
 
-    def set_proj0(self):
-        tmp, _, _, _ = dxchange.read_sesame_beats(self.h5file.value, exchange_rank=0, proj=(0, 1, 1))
+    def set_proj0(self, proj_id=0):
+        tmp, _, _, _ = dxchange.read_sesame_beats(self.h5file.value, exchange_rank=0, proj=(proj_id, proj_id+1, 1))
         self.proj0 = tmp[0, :, :]
+
+    def set_proj1(self, proj_id=0):
+        tmp, _, _, _ = dxchange.read_sesame_beats(self.h5file.value, exchange_rank=0, proj=(proj_id, proj_id+1, 1))
+        self.proj1 = tmp[0, :, :]
 
     def load_and_normalize(self, filename, filename_flats="", filename_darks=""):
         # free some space
@@ -499,7 +506,23 @@ class alrecon:
             logger.info("Automatic detected COR: {0} - tomopy.find_center".format(self.COR_guess.value))
 
         self.COR.set(self.COR_guess.value)
-        self.COR_range.set([self.COR_guess.value - 20, self.COR_guess.value + 20])
+        self.COR_range.set([self.COR_guess.value - 10, self.COR_guess.value + 10])
+        self.cor_status.set(False)
+
+    def guess_overlap(self):
+        self.cor_status.set(True)
+        # load second projection 180-degrees apart
+        n_angles = dxchange.read_hdf5(self.h5file.value, "/process/acquisition/rotation/num_angles")[0]
+        proj2_id = int(np.round(n_angles / 2) + 1)
+        self.set_proj1(proj_id=proj2_id)
+
+        # find overlap estimate
+        cor_guess = tomopy.find_center_pc(self.proj0, self.proj1, tol=self.overlap_tol.value, rotc_guess=self.overlap.value)
+
+        # set GUI vars and update state
+        self.overlap_guess.set(int(2*(self.proj0.shape[0] - cor_guess)))
+        self.overlap.set(self.overlap_guess.value)
+        self.COR_range.set([self.overlap_guess.value - 10, self.overlap_guess.value + 10])
         self.cor_status.set(False)
 
     def write_overlap(self):

@@ -48,7 +48,7 @@ def CORdisplay():
     if not ar.extended_FOV.value:
         with solara.Card("", margin=0, classes=["my-2"]):  # , style={"width": "200px"}
             with solara.Column():  # gap="10px", justify="space-around"
-                solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: ar.guess_COR(), disabled=not (ar.loaded_file.value))
+                solara.Button(label="Guess COR", icon_name="mdi-play", on_click=lambda: ar.guess_COR(), disabled=not (ar.loaded_file.value), color="primary")
                 solara.InputFloat("COR guess", value=ar.COR_guess, continuous_update=False)
                 SetCOR()
                 solara.ProgressLinear(ar.cor_status.value)
@@ -113,6 +113,9 @@ def OverlapInspect():
     with solara.Card(title="Find the sinogram overlap", margin=0, classes=["my-2"], style={"min-width": "900px"}):
         with solara.Column():  # style={"width": "450px"}
             with solara.Row():
+                if ar.COR_step.value < 1:
+                    ar.COR_step.set(1)
+
                 solara.SliderRangeInt("Overlap range and side", value=ar.COR_range, step=5, min=0, max=ar.projs.shape[2], thumb_label="always")
                 solara.Markdown(f"Min: {ar.COR_range.value[0]}")
                 solara.Markdown(f"Max: {ar.COR_range.value[1]}")
@@ -130,6 +133,9 @@ def OverlapInspect():
                     label="Inspect images - overlap range",
                     icon_name="mdi-eye",
                     on_click=lambda: view.imagejView(ImageJ_exe_stack, ar.cor_dir.value, "/{:04.2f}".format(ar.COR_range.value[0])),
+                )
+                solara.Button(
+                    label="Guess overlap", icon_name="mdi-play", color="primary", on_click=lambda: ar.guess_overlap(), disabled=not (ar.loaded_file.value),
                 )
 
 
