@@ -520,9 +520,10 @@ class alrecon:
         cor_guess = tomopy.find_center_pc(self.proj0, self.proj1, tol=self.overlap_tol.value, rotc_guess=self.overlap.value)
 
         # set GUI vars and update state
-        self.overlap_guess.set(int(2*(self.proj0.shape[0] - cor_guess)))
+        self.overlap_guess.set(int(2*(self.proj0.shape[1] - cor_guess)))
         self.overlap.set(self.overlap_guess.value)
         self.COR_range.set([self.overlap_guess.value - 10, self.overlap_guess.value + 10])
+        logger.info("Automatic overlap guess: {0}".format(self.overlap_guess_guess.value))
         self.cor_status.set(False)
 
     def write_overlap(self):
