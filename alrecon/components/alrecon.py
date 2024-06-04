@@ -513,17 +513,23 @@ class alrecon:
         self.cor_status.set(True)
         # load second projection 180-degrees apart
         n_angles = dxchange.read_hdf5(self.h5file.value, "/process/acquisition/rotation/num_angles")[0]
-        proj2_id = int(np.round(n_angles / 2) + 1)
-        self.set_proj1(proj_id=proj2_id)
+        proj1_id = int(np.round(n_angles / 2) + 1)
+        self.set_proj1(proj_id=proj1_id)
 
         # find overlap estimate
-        cor_guess = tomopy.find_center_pc(self.proj0, self.proj1, tol=self.overlap_tol.value, rotc_guess=self.overlap.value)
+        array_size = self.proj0.shape[1]
+        print(array_size)
+        comparison_size = int(1.5 * self.overlap.value)
+        array_start = int(array_size - comparison_size)
+
+        cor_guess = tomopy.find_center_pc(self.proj0[:,array_start:array_size], self.proj1[:,array_start:array_size], tol=self.overlap_tol.value, rotc_guess=self.overlap.value)
+        overlap_guess = 2 * (comparison_size - cor_guess)
 
         # set GUI vars and update state
-        self.overlap_guess.set(int(2*(self.proj0.shape[1] - cor_guess)))
+        self.overlap_guess.set(int(overlap_guess))
         self.overlap.set(self.overlap_guess.value)
         self.COR_range.set([self.overlap_guess.value - 10, self.overlap_guess.value + 10])
-        logger.info("Automatic overlap guess: {0}".format(self.overlap_guess_guess.value))
+        logger.info("Automatic overlap guess: {0}".format(self.overlap_guess.value))
         self.cor_status.set(False)
 
     def write_overlap(self):
