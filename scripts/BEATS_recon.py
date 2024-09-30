@@ -174,9 +174,13 @@ def main():
                         help='Flip reconstruction volume along given axis. --flip 1 2 rotates the reconstruction by 180 degrees around Z-axis.')
     parser.add_argument('--crop', type=int, default=None, nargs='+',
                         help='Crop reconstruction volume with parameters: [X_start, X_size, Y_start, Y_size, Z_start, Z_size]. If argument is negative the corresponding axis is not cropped.')
+    parser.add_argument('--median_filter3d', dest='median_filter3d', action='store_true',
+                        help='Apply 3D median filter to a reconstructed volume.')
+    parser.add_argument('--median_filter3d_size', type=int, default=3,
+                        help='Window size of the 3D median filter applied to the reconstructed volume.')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Verbose output.')
     parser.set_defaults(fullturn=False, simulate_theta=False, phase=False, phase_pad=True, circ_mask=False,
-                        write_midplanes=False, verbose=False, norm=True, output=True, flats_scale=False)
+                        write_midplanes=False, verbose=False, norm=True, output=True, flats_scale=False, median_filter3d=False)
 
     args = parser.parse_args()
 
@@ -487,6 +491,10 @@ def main():
         logging.info("	Y_start: {0};   Y_size: {1}".format(Y_start, Y_end - Y_start))
         logging.info("	Z_start: {0};   Z_size: {1}\n".format(Z_start, Z_end - Z_start))
         recon = recon[Z_start:Z_end, Y_start:Y_end, X_start:X_end]
+
+    if args.median_filter3d:
+        logging.info('Apply 3D median filter to the reconstructed volume.\n')
+        recon = tomopy.misc.corr.median_filter3d(recon, size=args.median_filter3d_size, ncore=args.ncore)
 
     if args.output:
         logging.info('Writing reconstructed dataset.\n')
