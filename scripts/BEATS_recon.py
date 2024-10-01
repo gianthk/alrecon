@@ -9,7 +9,7 @@ For more information, call this script with the help option:
 
 __author__ = ['Gianluca Iori']
 __date_created__ = '2023-05-15'
-__date__ = '2024-05-09'
+__date__ = '2024-09-30'
 __copyright__ = 'Copyright (c) 2024, SESAME'
 __docformat__ = 'restructuredtext en'
 __license__ = "MIT"
