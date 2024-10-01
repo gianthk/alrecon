@@ -493,8 +493,9 @@ def main():
         recon = recon[Z_start:Z_end, Y_start:Y_end, X_start:X_end]
 
     if args.median_filter3d:
-        logging.info('Apply 3D median filter to the reconstructed volume.\n')
-        recon = tomopy.misc.corr.median_filter3d(recon, size=args.median_filter3d_size, ncore=args.ncore)
+        logging.info('3D median filter option not implemented yet.\n')
+        # logging.info('Apply 3D median filter to the reconstructed volume.\n')
+        # recon = tomopy.misc.corr.median_filter3d(recon, size=args.median_filter3d_size, ncore=args.ncore)
 
     if args.output:
         logging.info('Writing reconstructed dataset.\n')
