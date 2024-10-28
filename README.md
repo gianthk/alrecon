@@ -8,7 +8,7 @@ Pure Python Computed Tomography reconstruction web application. Built with [Sola
 
 ### How to cite
 If you use `alrecon` please cite:
->  Iori et al., (2024). Alrecon: computed tomography reconstruction web application based on Solara. Open Research Europe, 4(54). https://doi.org/10.12688/openreseurope.16863.1  <br>
+>  Iori et al., (2024). Alrecon: computed tomography reconstruction web application based on Solara. Open Research Europe, 4(54). https://doi.org/10.12688/openreseurope.16863.2  <br>
 
 ## Installation
 <!-- Install `alrecon` using pip. The flag `[all]` will install optional dependencies required for integration with [`napari`](https://napari.org) and logging to google spreadsheets.
