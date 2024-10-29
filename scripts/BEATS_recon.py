@@ -69,6 +69,9 @@ def try_to_obtain_theta_from_dxfile(args, projs):
     except:
         theta = tomopy.angles(projs.shape[0])
 
+    # the system gives terrible reconstructions, if we use the readout.
+    # Let's do it like this for the moment, until we have a better idea what to implement instead.
+    theta = tomopy.angles(projs.shape[0])
     return theta
 
 def main():
