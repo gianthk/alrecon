@@ -10,6 +10,21 @@ Pure Python Computed Tomography reconstruction web application. Built with [Sola
 If you use `alrecon` please cite:
 >  Iori et al., (2024). Alrecon: computed tomography reconstruction web application based on Solara. Open Research Europe, 4(54). https://doi.org/10.12688/openreseurope.16863.2  <br>
 
+## Features
+- CPU and GPU-accelerated CT reconstruction using the [TomoPy](https://tomopy.readthedocs.io/en/stable/) and [ASTRA](https://astra-toolbox.com/) toolboxes
+- Sinogram and reconstructed volume visuzalization with [napari](https://napari.org) or [ImageJ](https://imagej.net/software/fiji/)
+- Control over the sinogram portion to be loaded and processed
+- Module for the optimization of the tomographic center of rotation
+- Module for the correction of sinogram stripe artifacts
+- Phase-retrieval module
+- Different CT reconstruction algorithms, including iterative methods
+- Compression of output volume data to integer and [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000) format
+- Job scheduling on reconstruction HPC cluster using [SLURM](https://slurm.schedmd.com/documentation.html)
+- Keep a log of reconstruction jobs to a Google spreadsheet
+
+> [!NOTE]
+> Alrecon uses [TopoPy](https://tomopy.readthedocs.io/en/stable/) and as such supports only parallel-beam reconstruction geometries (synchrotron CT). Reconstruction of fan-beam data is not supported at the moment.
+
 ## Installation
 <!-- Install `alrecon` using pip. The flag `[all]` will install optional dependencies required for integration with [`napari`](https://napari.org) and logging to google spreadsheets.
 ```commandline
@@ -27,13 +42,13 @@ conda env create --file envs/alrecon-base.yml
 conda activate alrecon-base
 ```
 > [!NOTE]
-> If you already have a destination virtual environment for alrecon, you can install manually the requirements listed in file [alrecon.yml](envs/alrecon-base.yml).
+> If you already have a destination virtual environment for alrecon, you can install manually the requirements listed in the file [alrecon-base.yml](envs/alrecon-base.yml).
 
 > [!NOTE]
-> You can install [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) if you have conda not on your computer and have no desire for a "fully-fledged" anaoonda environment (to date, the tomopy package is only available for conda). There is an option for a "Quick command line install", which runs the complete installation without having you to click. In case of doubt, you can omit the last step `~/miniconda3/bin/conda init bash` and activate conda by `source miniconda3/bin/activate`.
+> If you don't have conda and want to keep things simple you can install [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) instead.
 
 > [!NOTE]
-> To use TomoPy with CUDA features, install TomoPy from conda following [these instructions](https://tomopy.readthedocs.io/en/stable/install.html).
+> To use TomoPy with CUDA features, install TomoPy through conda following [these instructions](https://tomopy.readthedocs.io/en/stable/install.html).
 
 3. Build the `alrecon` app:
 ```commandline
@@ -55,7 +70,7 @@ or:
 ```commandline
 conda install -c anaconda ipykernel 
 ```
-2. Install [ipykernel](https://github.com/ipython/ipykernel) with the `alrecon` virtual environment:
+2. Install [ipykernel](https://github.com/ipython/ipykernel) in the `alrecon` virtual environment:
 ```commandline
 python -m ipykernel install --user --name=alrecon
 ```
@@ -79,7 +94,7 @@ You can take a look at [solara's documnetation](https://solara.dev/api) for more
 3. Create or upload to your Google account a spreadsheet master. You can find a template in `resources/foo_master.xls`
 4. If the option `log to google master spreadsheet` is activated, each time you submit a job to the HPC cluster the reconstruction settings are logged as a new line of the master spreadsheet
 
-### HPC cluster integration
+## HPC cluster integration
 `Alrecon` can generate reconstruction job files and submit them to the workers of a cluster, if this is available. The current integration assumes that the [slurm workload manager](https://slurm.schedmd.com/quickstart.html) is available on the host, and is designed for the [ID10-BEATS beamline](https://www.sesame.org.jo/beamlines/beats) of SESAME. Here are some general instructions on how to set up alrecon to work with your HPC facility:
 
 - The `remote_user` specified in the alrecon settings file must exist and have `ssh` access to the `remote_host`
