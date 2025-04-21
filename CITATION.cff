@@ -1,0 +1,65 @@
+# This CITATION.cff reference content was generated from Zotero.
+references:
+  - title: >-
+      Alrecon: computed tomography reconstruction web application based on Solara [version 2; peer review: 5 approved, 1 approved with reservations]
+    type: journalArticle
+    issue: 54
+    journal: Open Research Europe
+    volume: 4
+    url: https://open-research-europe.ec.europa.eu/articles/4-54/v2
+    authors: 
+      - family-names: Iori
+        given-names: G
+      - family-names: Hans
+        given-names: P
+      - family-names: Foudeh
+        given-names: I
+      - family-names: Alzubi
+        given-names: M
+      - family-names: Al Mohammad
+        given-names: M
+      - family-names: Matalgah
+        given-names: S
+    editors: 
+      - family-names: Iori
+        given-names: G
+      - family-names: Hans
+        given-names: P
+      - family-names: Foudeh
+        given-names: I
+      - family-names: Alzubi
+        given-names: M
+      - family-names: Al Mohammad
+        given-names: M
+      - family-names: Matalgah
+        given-names: S
+    recipients: 
+      - family-names: Iori
+        given-names: G
+      - family-names: Hans
+        given-names: P
+      - family-names: Foudeh
+        given-names: I
+      - family-names: Alzubi
+        given-names: M
+      - family-names: Al Mohammad
+        given-names: M
+      - family-names: Matalgah
+        given-names: S
+    translators: 
+      - family-names: Iori
+        given-names: G
+      - family-names: Hans
+        given-names: P
+      - family-names: Foudeh
+        given-names: I
+      - family-names: Alzubi
+        given-names: M
+      - family-names: Al Mohammad
+        given-names: M
+      - family-names: Matalgah
+        given-names: S
+    date-published: 2024
+    identifiers: 
+      - type: doi
+        value: 10.12688/openreseurope.16863.2
