@@ -1,0 +1,82 @@
+# App settings:
+master_file: '/PETRA/SED/BEATS/IH/scratch/master.csv'
+master_spreadsheet: 'IH_master'
+gspread_key: '/home/beatsbs/PycharmProjects/alrecon/keys/alrecon-e50b00b0b6f6.json'
+gspread_logging: True
+experiment_dir: "/PETRA/SED/BEATS/IH/"
+experiment_name: '<experiment_name>'
+inhouse: True
+h5file: ''
+h5file_flats: ''
+h5file_darks: ''
+dataset: '<dataset>'
+recon_dir: '/PETRA/SED/BEATS/IH/scratch/tmp/recon'
+cor_dir: '/PETRA/SED/BEATS/IH/scratch/tmp/cor'
+auto_complete: False
+imagej_launcher: '/home/beatsbs/Fiji.app/ImageJ-linux64'
+# General settings
+expert: True
+ncore: 28
+normalize_on_load: True
+recon_sino_range: False
+sino_range: [980, 1020]
+recon_proj_range: False
+proj_range: [0, 4001]
+averaging: 'mean'
+separate_flats: False
+flats_scale: False
+separate_darks: False
+# Stripe removal settings
+stripe_remove: False
+stripe_removal_method: 'remove_all_stripe'
+snr: 3.
+sigma: 3.
+size: 51
+norm: True
+la_size: 61
+sm_size: 21
+dim: 1
+drop_ratio: 0.1
+# Center Of Rotation settings
+COR: 1280
+COR_step: 1
+COR_auto: False
+COR_algorithm: 'TomoPy'
+# Extended FOV settings
+extended_FOV: False
+overlap: 1280
+overlap_side: 'left'
+# Phase retrieval settings
+phase_object: False
+pad: True
+pixelsize: 6.5
+energy: 20.
+sdd: 20.
+alpha: 0.002
+# Reconstruction settings
+# algorithms: [ "gridrec", "fbp_cuda_astra", "sirt_cuda_astra", "sart_cuda_astra", "cgls_cuda_astra" ]
+algorithm: 'gridrec'
+num_iter: 50
+# Output settings
+uintconvert: False
+bitdepth: 'uint8'
+circmask: False
+circmask_ratio: 0.9
+write_midplanes: True
+# Plot settings
+plotreconhist: True
+hist_speed: 'fast'
+# Slurm settings
+remote_user: 'beatsbs'
+remote_host: '10.1.32.20'
+node: 'rum'
+partition: 'gpu'
+nodelist: 'gpunode1'
+gres: 'gpu:1'
+ntasks: 11
+nchunk: 100
+cpus_per_task: 8
+max_time_min: 40
+mem_per_cpu: '2G'
+max_threads: 10
+recon_script: '/PETRA/SED/BEATS/IH/scratch/scripts/BEATS_recon.py'

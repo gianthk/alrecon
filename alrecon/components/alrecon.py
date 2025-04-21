@@ -216,6 +216,7 @@ class alrecon:
                 self.dir_recon_root = self.define_recon_dir_BEATS()
                 self.recon_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value, "recon"))
                 self.cor_dir.set(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value, "cor"))
+                # logger.info("Try to set recon dir to: {0}".format(path.join(self.dir_recon_root, self.experiment_name.value, self.dataset.value, "recon")))
 
             self.check_path(self.recon_dir, True)
             self.check_path(self.cor_dir, True)
